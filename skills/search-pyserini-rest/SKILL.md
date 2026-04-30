@@ -34,6 +34,7 @@ Token handling rules:
 - If `.env.local` already exists, read only enough to determine whether `PYSERINI_API_TOKEN` is present; do not display the file contents.
 - If `.curlrc.pyserini-rest` is missing but `.env.local` has `PYSERINI_API_TOKEN`, create `.curlrc.pyserini-rest` with mode `600` and a single authorization header derived from the token.
 - If `.curlrc.pyserini-rest` exists but authenticated requests fail after confirming `PYSERINI_API_TOKEN` is present, regenerate `.curlrc.pyserini-rest` from `.env.local` without printing either file.
+- If the API returns the `401` unauthorized response, tell the user to request an access token by emailing `get-pyserini@googlegroups.com`.
 - Use `.curlrc.pyserini-rest` for requests:
 
 ```bash
@@ -223,6 +224,14 @@ Practical guidance:
 
 Verified responses:
 
+- Unauthorized or missing token:
+
+```json
+{"error":"Unauthorized. To request an access token, email get-pyserini@googlegroups.com."}
+```
+
+Resolution: email `get-pyserini@googlegroups.com` to request a Pyserini access token, then store the received token locally as `PYSERINI_API_TOKEN` in `.env.local` and regenerate `.curlrc.pyserini-rest`.
+
 - Missing `query`:
 
 ```json
@@ -267,6 +276,7 @@ Verified responses:
 
 Status codes observed:
 
+- `401` for unauthorized requests, missing tokens, expired tokens, or invalid tokens; request a token by emailing `get-pyserini@googlegroups.com`
 - `400` for invalid parameters and invalid index
 - `404` for missing document
 - `405` for unsupported method
