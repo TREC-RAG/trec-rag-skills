@@ -1,6 +1,6 @@
 ---
-name: search-pyserini-rest
-description: Use when working with the Pyserini REST search API exposed at http://99.251.12.72:8081, including endpoint discovery, search requests, document fetches, query experimentation, and client usage for ClimbMix, FineWeb-Edu, and MS MARCO V2.1 Segmented Doc indexes. This skill captures the verified request and response behavior of the API, especially the meaning of hits and parse, the available routes, error cases, dataset-to-index configuration, and how query syntax is actually interpreted in practice.
+name: rag-skills-pyserini
+description: Use when working with the Pyserini REST search API exposed at http://99.251.12.72:8081, including endpoint discovery, health checks, authenticated search requests, document fetches, query experimentation, and client usage for ClimbMix, FineWeb-Edu, and MS MARCO V2.1 Segmented Doc indexes. Captures verified request and response behavior, especially the meaning of hits and parse, available routes, error cases, dataset-to-index configuration, and how query syntax is interpreted in practice.
 ---
 
 # Search Pyserini REST
@@ -34,6 +34,7 @@ Token handling rules:
 - If `.env.local` already exists, read only enough to determine whether `PYSERINI_API_TOKEN` is present; do not display the file contents.
 - If `.curlrc.pyserini-rest` is missing but `.env.local` has `PYSERINI_API_TOKEN`, create `.curlrc.pyserini-rest` with mode `600` and a single authorization header derived from the token.
 - If `.curlrc.pyserini-rest` exists but authenticated requests fail after confirming `PYSERINI_API_TOKEN` is present, regenerate `.curlrc.pyserini-rest` from `.env.local` without printing either file.
+- If the API returns the `401` unauthorized response, tell the user to request an access token by emailing `get-pyserini@googlegroups.com`.
 - Use `.curlrc.pyserini-rest` for requests:
 
 ```bash
@@ -45,7 +46,7 @@ Rationale: using `curl -sS -K .curlrc.pyserini-rest` keeps the token out of visi
 
 When using `jq`, prefer saving the `curl` response to a temporary JSON file with `-o` and then running `jq` as a separate local command. Do not pipe `curl` directly into `jq`; the sandbox treats each pipeline segment as a separate command and may require repeated escalation for otherwise local JSON inspection.
 
-If the API returns an authorization error, tell the user the local token appears missing, expired, or invalid without revealing any token value.
+If the API returns an authorization error, tell the user the local token appears missing, expired, or invalid without revealing any token value. If the response says to request an access token by email, include that step and the contact address.
 
 ## Endpoints
 
@@ -223,6 +224,14 @@ Practical guidance:
 
 Verified responses:
 
+- Unauthorized or missing token:
+
+```json
+{"error":"Unauthorized. To request an access token, email get-pyserini@googlegroups.com."}
+```
+
+Resolution: email `get-pyserini@googlegroups.com` to request a Pyserini access token, then store the received token locally as `PYSERINI_API_TOKEN` in `.env.local` and regenerate `.curlrc.pyserini-rest`.
+
 - Missing `query`:
 
 ```json
@@ -267,6 +276,7 @@ Verified responses:
 
 Status codes observed:
 
+- `401` for unauthorized requests, missing tokens, expired tokens, or invalid tokens; request a token by emailing `get-pyserini@googlegroups.com`
 - `400` for invalid parameters and invalid index
 - `404` for missing document
 - `405` for unsupported method
@@ -315,7 +325,7 @@ When helping with this API:
 1. Confirm the dataset or index name. Map ClimbMix to `climbmix-400b`, FineWeb-Edu to `fineweb-edu-100b-karpathy`, and MS MARCO V2.1 Segmented Doc to `msmarco-v2.1-doc-segmented`.
 2. If the dataset or index is unclear from context, ask the user which index to search. If the user asks what is available, answer with the mappings from Dataset Configuration.
 3. Check whether `.env.local` contains `PYSERINI_API_TOKEN` without printing it.
-4. If the token is missing, ask the user to provide it for local storage in `.env.local`; do not proceed with authenticated API calls until it is available.
+4. If the token is missing, ask the user to provide it for local storage in `.env.local`; if they do not have a token, tell them to request one by emailing `get-pyserini@googlegroups.com`. Do not proceed with authenticated API calls until a token is available.
 5. Ensure `.curlrc.pyserini-rest` exists, is ignored by git, and has mode `600`.
 6. Use `curl -sS -K .curlrc.pyserini-rest -o /tmp/pyserini-rest-*.json` for all Pyserini REST requests so the token stays out of command lines and the command prefix can be approved once for network access.
 7. Use `/v1/{index}/search` for retrieval and `/v1/{index}/doc/{docid}` for follow-up fetches.
