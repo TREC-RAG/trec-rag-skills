@@ -1,6 +1,6 @@
 # Pyserini ClimbMix Baseline
 
-Use this reference when building a baseline retrieval system or when no custom retriever is provided. For baseline `RAG` runs, Pyserini/ClimbMix provides the candidate evidence pool; it is not the final answer generator. Unless an explicit non-agent answer generator is named, the agent prepares the final `RAG` answer by reading evidence and writing the cited answer sentences.
+Use this reference when building a baseline retrieval system or when no custom retriever is provided. For baseline `RAG` runs, Pyserini/ClimbMix BM25 provides the candidate evidence pool; it is not the final answer generator. Unless an explicit non-agent answer generator is named, the agent prepares the final `RAG` answer by reading evidence and writing the cited answer sentences.
 
 ## Companion Skill
 
@@ -64,9 +64,10 @@ Expected search response shape:
 
 ## Baseline RAG Generator
 
-For `RAG`, the top 100 Pyserini/ClimbMix results are candidate evidence. Unless a custom generator is specified, the agent using this skill is the answer generator:
+For `RAG`, the top 100 Pyserini/ClimbMix BM25 results are candidate evidence. Unless a custom generator is specified, the agent using this skill is the answer generator. Treat the agent as an evidence-grounded research reporter: it reads the retrieved source packet, identifies the documents that support an answer, and writes a concise cited synthesis from that evidence.
 
 - Review the retrieved candidate documents.
+- Reason over the evidence as a source packet, looking for corroboration, disagreement, missing context, and limits in coverage.
 - Select only the ClimbMix documents that directly support final answer sentences.
 - Put only cited document IDs in `references`.
 - Manually write sentence-level answers grounded only in the selected documents.
@@ -77,6 +78,7 @@ Default baseline answer-writing rules:
 - Use only retrieved ClimbMix documents as evidence.
 - Do not use intrinsic, parametric, or memory-based knowledge to add facts.
 - Keep every substantive claim tightly supported by cited documents.
+- Prefer careful synthesis over extractive copying, but do not introduce facts that are not supported by the retrieved evidence.
 - If support is partial, write only the supported claim rather than filling the gap.
 - If the retrieved evidence is insufficient, say so in the answer rather than guessing.
 - Do not include diagnostic fields, search traces, rewritten queries, or raw snippets in the submitted `RAG` object unless official instructions require them.

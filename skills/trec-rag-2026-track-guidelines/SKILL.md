@@ -7,7 +7,7 @@ metadata:
 
 # TREC RAG 2026 Track Guidelines
 
-Use this skill when preparing a TREC RAG 2026 submission, validating outputs, reasoning about task requirements, or building a baseline. Follow official TREC RAG 2026 releases if they conflict with this draft.
+Use this skill when preparing a TREC RAG 2026 submission, validating outputs, reasoning about task requirements, or building a baseline. This skill encodes the current official TREC RAG 2026 task instructions. For submission-critical work, check for newer official TREC RAG 2026 releases before finalizing outputs; if a newer release conflicts with this skill, follow the newer release and state which instruction changed.
 
 ## Audience and Terminology
 
@@ -21,6 +21,7 @@ This skill is addressed to you, the agent or developer building, validating, or 
 
 - Available 2026 tasks: Retrieval (`R`) and Retrieval-Augmented Generation (`RAG`).
 - Removed task: the 2025 Augmented Generation-only task (`AG`) is not a 2026 output.
+- Submission logistics are TBD; treat deadlines, upload procedures, and portal-specific requirements as pending until TREC RAG 2026 releases final submission instructions.
 - Primary retrieval corpus/index: ClimbMix.
 - Pyserini REST index name: `climbmix-400b`.
 - Topic input filename: `trec_rag_2026_queries.jsonl`.
@@ -56,4 +57,4 @@ Before considering a run complete, verify:
 
 ## When Requirements Are Unclear
 
-If preparing an official submission and external instructions conflict with this skill, prefer the newest official TREC RAG 2026 instructions. If only draft information is available, state the assumption and proceed with the defaults in this skill.
+Treat this skill and its referenced files as the authoritative task instructions for agent-created TREC RAG 2026 runs. If a newer official TREC RAG skill release supersedes this one, follow the newer skill and state which instruction changed. If submission logistics such as deadlines, upload procedures, or portal-specific requirements are not yet specified, state the assumption and proceed with the applicable defaults in this skill.

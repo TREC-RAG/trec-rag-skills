@@ -83,6 +83,12 @@ Required fields:
 - `answer[].text`: answer sentence.
 - `answer[].citations`: zero-indexed positions into `references`.
 
+Run type guidance:
+
+- Use `metadata.type: "manual"` when a person or agent reads retrieved evidence and composes the answer topic by topic.
+- Use `metadata.type: "automatic"` when a declared system or generator produces the answer text without per-topic human or agent composition.
+- The distinction describes how the answer text was produced, not whether scripts were used for retrieval, packaging, validation, or JSONL formatting.
+
 ## Answer Rules
 
 - Break the final answer into individual sentences.
