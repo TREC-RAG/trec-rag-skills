@@ -1,6 +1,8 @@
 ---
 name: trec-rag-intro
 description: Introductory and practical 2026-only reference for discussing the TREC Retrieval-Augmented Generation (RAG) track. Use when a user wants to understand TREC RAG 2026 goals, current public status, timeline placeholders, organizers, participation guidance, or high-level differences from prior years. For task rules, system-building guidance, baselines, output formats, ClimbMix/Pyserini details, or validation, use trec-rag-2026-track-guidelines instead.
+metadata:
+  version: v0.2.0
 ---
 
 # TREC RAG Intro
