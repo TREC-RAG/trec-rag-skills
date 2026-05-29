@@ -10,17 +10,18 @@ Use this reference when building, explaining, or validating the TREC RAG 2026 Re
 
 ## Input Format: Topics
 
-Topics are provided as JSONL in `trec_rag_2026_queries.jsonl`. Each line contains a topic ID and a 2-3 sentence narrative-style topic description.
+Topics are provided as JSONL in `trec_rag_2026_queries.jsonl`. Each line contains a topic ID, a short keyword-style title, and a longer narrative-style topic description.
 
 ```jsonl
-{"id":"1","title":"I'm trying to understand how the Industrial Revolution began, what caused it, and how it changed societies, economies, and populations in different countries. I'm also interested in the roles of key figures like Henry Ford, the impact of technological advancements, and how industrialization connects to topics like urbanization, migration, and modern innovations such as robotics and extended reality."}
-{"id":"2","title":"I'm trying to understand how prisons operate, including issues like inmate rights, rehabilitation, voting, and the impact of race and profit motives on incarceration. Can you explain how correctional facilities address mental health, discipline, and recidivism, and also discuss the ethical and legal challenges inmates face?"}
+{"id":"1","title":"Industrial Revolution causes and effects","narrative":"I'm trying to understand how the Industrial Revolution began, what caused it, and how it changed societies, economies, and populations in different countries. I'm also interested in the roles of key figures like Henry Ford, the impact of technological advancements, and how industrialization connects to topics like urbanization, migration, and modern innovations such as robotics and extended reality."}
+{"id":"2","title":"Prisons inmate rights rehabilitation incarceration","narrative":"I'm trying to understand how prisons operate, including issues like inmate rights, rehabilitation, voting, and the impact of race and profit motives on incarceration. Can you explain how correctional facilities address mental health, discipline, and recidivism, and also discuss the ethical and legal challenges inmates face?"}
 ```
 
 Required fields:
 
 - `id`: topic identifier. Preserve this exactly in all outputs.
-- `title`: topic narrative. Preserve this text exactly in outputs. Use it as the initial retrieval query unless the system intentionally performs query rewriting or decomposition internally.
+- `title`: short topic title, usually a few keywords. Preserve this exactly in outputs that include topic metadata. Use it as the default initial retrieval query unless the system intentionally performs query rewriting or decomposition internally.
+- `narrative`: long-form topic description. Preserve this exactly in outputs that include topic metadata. Use it to understand the full information need and to guide query rewriting, decomposition, evidence selection, and generation.
 
 ## Input Format: ClimbMix Documents
 

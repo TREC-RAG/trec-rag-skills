@@ -14,7 +14,7 @@ For the Pyserini/ClimbMix baseline, retrieved BM25 results are the candidate evi
 
 ## Input Format: Topics
 
-Use the same `trec_rag_2026_queries.jsonl` topic file as the Retrieval task. Preserve `id` and `title` exactly in RAG metadata.
+Use the same `trec_rag_2026_queries.jsonl` topic file as the Retrieval task. Preserve `id`, `title`, and `narrative` exactly in RAG metadata.
 
 ## Input Format: Documents
 
@@ -49,6 +49,7 @@ For official submissions, provide JSONL in `rag_output_trec_rag_2026.jsonl`, wit
     "run_id": "my-rag-run",
     "type": "automatic",
     "narrative_id": "1",
+    "title": "Industrial Revolution causes and effects",
     "narrative": "I'm trying to understand how the Industrial Revolution began, what caused it, and how it changed societies, economies, and populations in different countries. I'm also interested in the roles of key figures like Henry Ford, the impact of technological advancements, and how industrialization connects to topics like urbanization, migration, and modern innovations such as robotics and extended reality.",
     "prompt": "Optional prompt used to generate the answer."
   },
@@ -76,7 +77,8 @@ Required fields:
 - `metadata.run_id`: run identifier.
 - `metadata.type`: `automatic` or `manual`.
 - `metadata.narrative_id`: topic ID from `trec_rag_2026_queries.jsonl`.
-- `metadata.narrative`: original topic text from `trec_rag_2026_queries.jsonl`.
+- `metadata.title`: original short topic title from `trec_rag_2026_queries.jsonl`.
+- `metadata.narrative`: original long-form topic narrative from `trec_rag_2026_queries.jsonl`.
 - `metadata.prompt`: optional prompt used for response generation.
 - `references`: ordered list of retrieved ClimbMix document IDs cited by the answer. Do not include uncited documents.
 - `answer`: array of sentence-level answer objects.

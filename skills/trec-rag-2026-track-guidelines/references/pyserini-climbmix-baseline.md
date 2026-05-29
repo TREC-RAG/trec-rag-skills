@@ -98,7 +98,7 @@ When building the default baseline, keep the division of labor explicit:
 ## Baseline Steps
 
 1. Load `trec_rag_2026_queries.jsonl`.
-2. For each topic, use `title` as the initial ClimbMix query.
+2. For each topic, use `title` as the default initial ClimbMix query, and use `narrative` as the full information need for query rewriting, decomposition, evidence selection, and answer generation.
 3. Retrieve `hits=100` from `climbmix-400b`.
 4. For `R`, write `r_output_trec_rag_2026.tsv` directly from returned `docid`, `rank`, and `score`.
 5. For default baseline `RAG`, have the agent review the retrieved documents, select the cited evidence subset, manually compose cited sentence-level answers, and write or package `rag_output_trec_rag_2026.jsonl` with `metadata.type: "manual"`.

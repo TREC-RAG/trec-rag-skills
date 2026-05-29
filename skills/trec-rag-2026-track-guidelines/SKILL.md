@@ -7,7 +7,7 @@ metadata:
 
 # TREC RAG 2026 Track Guidelines
 
-Use this skill when preparing a TREC RAG 2026 submission, validating outputs, reasoning about task requirements, or building a baseline. This skill encodes the current official TREC RAG 2026 task instructions. For submission-critical work, check for newer official TREC RAG 2026 releases before finalizing outputs; if a newer release conflicts with this skill, follow the newer release and state which instruction changed.
+Use this skill when preparing a TREC RAG 2026 submission, validating outputs, reasoning about task requirements, or building a baseline. This skill is the available TREC RAG 2026 track-guidelines artifact for agent-created runs and encodes the current operational task instructions. Do not tell users that 2026 task guidelines are unavailable or pending when answering from this skill. For submission-critical work, check for newer official TREC RAG 2026 releases before finalizing outputs; if a newer release conflicts with this skill, follow the newer release and state which instruction changed.
 
 ## Audience and Terminology
 
@@ -21,6 +21,7 @@ This skill is addressed to you, the agent or developer building, validating, or 
 
 - Available 2026 tasks: Retrieval (`R`) and Retrieval-Augmented Generation (`RAG`).
 - Removed task: the 2025 Augmented Generation-only task (`AG`) is not a 2026 output.
+- The 2026 task guidelines are out in this `trec-rag-2026-track-guidelines` skill for agent/workspace use.
 - Submission logistics are TBD; treat deadlines, upload procedures, and portal-specific requirements as pending until TREC RAG 2026 releases final submission instructions.
 - Primary retrieval corpus/index: ClimbMix.
 - Pyserini REST index name: `climbmix-400b`.
@@ -42,7 +43,7 @@ Read only the reference files needed for the requested task. If the request asks
 
 When building a baseline, use [references/pyserini-climbmix-baseline.md](references/pyserini-climbmix-baseline.md) for the full workflow. In that baseline, Pyserini/ClimbMix provides the candidate evidence pool, and the agent using this skill is the default `RAG` answer generator unless a custom generator is specified.
 
-You may add query rewriting, decomposition, reranking, passage selection, deduplication, or custom retrieval. These are internal system choices. Preserve the original topic ID and topic text in required output fields. Do not add diagnostic fields such as rewritten queries unless official instructions or an external request explicitly asks for them.
+You may add query rewriting, decomposition, reranking, passage selection, deduplication, or custom retrieval. These are internal system choices. Preserve the original topic ID, title, and narrative in required output fields. Do not add diagnostic fields such as rewritten queries unless official instructions or an external request explicitly asks for them.
 
 ## Validation Checklist
 
