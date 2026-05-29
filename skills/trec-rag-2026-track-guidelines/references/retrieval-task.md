@@ -5,7 +5,7 @@ Use this reference when building, explaining, or validating the TREC RAG 2026 Re
 ## Task Summary
 
 - **Given**: a list of topics and access to the ClimbMix collection through the Pyserini REST API or a custom retrieval system.
-- **Task**: return a ranked list of the top 100 relevant ClimbMix document IDs for each topic.
+- **Task**: return a ranked list of relevant ClimbMix document IDs for each topic. Participants may choose how many documents to return per topic.
 - **Notes**: this task is the 2026 counterpart of the 2025 Retrieval task, but uses ClimbMix as the primary retrieval collection instead of the MS MARCO V2.1 segmented collection.
 
 ## Input Format: Topics
@@ -68,7 +68,8 @@ Field rules:
 
 ## Validation Rules
 
-- Return at most 100 rows per topic.
+- There is no fixed maximum number of rows per topic; participants may return as many ranked documents as they choose.
+- Rows per topic may vary across topics.
 - Sort each topic's rows by rank ascending.
 - Keep scores non-increasing within each topic.
 - `r_output_trec_rag_2026.tsv` must have exactly six whitespace-separated columns per line.

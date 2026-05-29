@@ -64,7 +64,7 @@ Expected search response shape:
 
 ## Baseline RAG Generator
 
-For `RAG`, the top 100 Pyserini/ClimbMix BM25 results are candidate evidence. Unless a custom generator is specified, the agent using this skill is the answer generator. Treat the agent as an evidence-grounded research reporter: it reads the retrieved source packet, identifies the documents that support an answer, and writes a concise cited synthesis from that evidence.
+For the default `RAG` baseline, the top 100 Pyserini/ClimbMix BM25 results are candidate evidence. Participants and custom systems may choose a different retrieval depth. Unless a custom generator is specified, the agent using this skill is the answer generator. Treat the agent as an evidence-grounded research reporter: it reads the retrieved source packet, identifies the documents that support an answer, and writes a concise cited synthesis from that evidence.
 
 - Review the retrieved candidate documents.
 - Reason over the evidence as a source packet, looking for corroboration, disagreement, missing context, and limits in coverage.
@@ -99,7 +99,7 @@ When building the default baseline, keep the division of labor explicit:
 
 1. Load `trec_rag_2026_queries.jsonl`.
 2. For each topic, use `title` as the default initial ClimbMix query, and use `narrative` as the full information need for query rewriting, decomposition, evidence selection, and answer generation.
-3. Retrieve `hits=100` from `climbmix-400b`.
+3. For the default baseline, retrieve `hits=100` from `climbmix-400b`; custom systems may use a different depth.
 4. For `R`, write `r_output_trec_rag_2026.tsv` directly from returned `docid`, `rank`, and `score`.
 5. For default baseline `RAG`, have the agent review the retrieved documents, select the cited evidence subset, manually compose cited sentence-level answers, and write or package `rag_output_trec_rag_2026.jsonl` with `metadata.type: "manual"`.
 6. If a custom non-agent generator is used instead, document it in the run configuration or prompt, have it generate the cited sentence-level answers, and use `metadata.type: "automatic"`.

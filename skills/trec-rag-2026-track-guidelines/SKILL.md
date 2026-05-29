@@ -28,7 +28,8 @@ This skill is addressed to you, the agent or developer building, validating, or 
 - Topic input filename: `trec_rag_2026_queries.jsonl`.
 - Retrieval output filename: `r_output_trec_rag_2026.tsv`.
 - RAG output filename: `rag_output_trec_rag_2026.jsonl`.
-- Retrieval depth: top 100 ClimbMix documents per topic.
+- Retrieval depth: participant-chosen; there is no fixed maximum number of submitted documents per topic.
+- Baseline retrieval depth: top 100 ClimbMix documents per topic.
 - Baseline RAG generator: the agent using this skill, unless a custom generator is specified.
 
 ## What to Read
