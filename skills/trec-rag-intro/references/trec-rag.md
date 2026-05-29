@@ -8,7 +8,7 @@ Sources browsed April 25, 2026:
 
 ## One-Sentence Summary
 
-TREC RAG 2026 is the returning Text REtrieval Conference track for retrieval-augmented generation systems; the public site currently provides the 2026 overview, participation guidance, timeline placeholders, and organizer list while detailed guidelines are still pending.
+TREC RAG 2026 is the returning Text REtrieval Conference track for retrieval-augmented generation systems; this intro reference summarizes public overview, participation, timeline, and organizer information, while the available task-level guidelines are in the separate `trec-rag-2026-track-guidelines` skill.
 
 ## Track Goals
 
@@ -20,8 +20,9 @@ TREC RAG 2026 is the returning Text REtrieval Conference track for retrieval-aug
 ## 2026 Status
 
 - The site announces that TREC RAG is returning for 2026.
-- The organizers say updates on the 2026 guidelines and timeline will be shared soon.
-- Detailed 2026 guidelines are still being revised or prepared.
+- The 2026 task guidelines are available in the `trec-rag-2026-track-guidelines` skill.
+- Use `trec-rag-2026-track-guidelines` for task rules, baselines, output formats, ClimbMix/Pyserini defaults, and validation.
+- Public submission logistics, deadlines, upload procedures, and portal-specific requirements should be verified from the official site before submission-critical work.
 - Current 2026 timeline:
   - Corpus released: Soon.
   - Test topics released: TBD.
@@ -54,4 +55,4 @@ This reference intentionally excludes 2024 and 2025 details.
 
 - For TREC RAG 2025 questions, refer users to https://trec-rag.github.io/trec25/
 - For TREC RAG 2024 questions, refer users to https://trec-rag.github.io/trec24/
-- If asked how 2026 differs from 2025, say that the 2026 guidelines are still being revised, so a definitive comparison is not available yet. Refer to the 2025 page for prior-year details.
+- If asked about task-level 2026 differences from 2025, use `trec-rag-2026-track-guidelines` for the 2026 side and refer to the 2025 page for prior-year details.
