@@ -1,70 +1,31 @@
 # Pyserini ClimbMix Baseline
 
-Use this reference when building a baseline retrieval system or when no custom retriever is provided. For baseline `RAG` runs, Pyserini/ClimbMix BM25 provides the candidate evidence pool; it is not the final answer generator. Unless an explicit non-agent answer generator is named, the agent prepares the final `RAG` answer by reading evidence and writing the cited answer sentences.
+Use this reference when building the default TREC RAG 2026 baseline retrieval system or when no custom retriever is provided. This file defines the track-specific baseline contract only. For Pyserini REST API access, authentication, service location, endpoint discovery, request examples, response parsing, health checks, query behavior, or error handling, use the `pyserini-rest-api` skill.
 
-## Companion Skill
+## Baseline Defaults
 
-For retrieval implementation details beyond the task-level contract in this skill, use the `search-pyserini-rest` skill from:
+- Corpus/index: ClimbMix / `climbmix-400b`.
+- Retrieval method: Pyserini BM25 through the Pyserini REST API.
+- Default retrieval depth: top 100 ClimbMix documents per topic.
+- Custom systems may choose a different retrieval depth.
+- For `R`, write `r_output_trec_rag_2026.tsv` from returned document IDs, ranks, and scores.
+- For default baseline `RAG`, Pyserini/ClimbMix BM25 provides the candidate evidence pool; it is not the final answer generator.
+- Unless a custom non-agent generator is specified, the agent using this skill is the default `RAG` answer generator.
 
-```text
-https://github.com/TREC-RAG/trec-rag-skills/tree/main/skills/search-pyserini-rest
-```
+## API Routing
 
-Read or invoke `search-pyserini-rest` when you need:
+Use `pyserini-rest-api` when the request needs any API-specific implementation detail, including:
 
 - Token setup or safe local authentication workflow.
 - Current service location, OpenAPI docs, health checks, or endpoint discovery.
-- ClimbMix search or document-fetch command examples.
+- Search or document-fetch command examples.
 - Response parsing, `parse` behavior, query semantics, or error handling.
 
-## Dataset Mapping
-
-```text
-ClimbMix -> climbmix-400b
-```
-
-## Endpoints
-
-Search endpoint:
-
-```text
-GET /v1/climbmix-400b/search?query=...&hits=100
-```
-
-Document fetch endpoint:
-
-```text
-GET /v1/climbmix-400b/doc/{docid}
-```
-
-Expected search response shape:
-
-```json
-{
-  "api": "v1",
-  "index": "climbmix-400b",
-  "query": {"text": "Albert Einstein"},
-  "candidates": [
-    {
-      "docid": "shard_00459_61697",
-      "score": 12.483799934387207,
-      "rank": 1,
-      "doc": "..."
-    }
-  ]
-}
-```
-
-## Operational Rules
-
-- Use ordinary natural-language or keyword queries.
-- Do not rely on Lucene fielded, Boolean, required, or prohibited query syntax.
-- Omit the `parse` parameter unless raw stored payloads are explicitly requested.
-- Never put Pyserini tokens in generated code, tracked files, command lines, logs, examples, or chat.
+This guidelines skill should not duplicate Pyserini REST command examples, response schemas, token handling, or endpoint behavior. Load this baseline reference for the TREC RAG 2026 baseline policy, then load `pyserini-rest-api` only if implementation details are needed.
 
 ## Baseline RAG Generator
 
-For the default `RAG` baseline, the top 100 Pyserini/ClimbMix BM25 results are candidate evidence. Participants and custom systems may choose a different retrieval depth. Unless a custom generator is specified, the agent using this skill is the answer generator. Treat the agent as an evidence-grounded research reporter: it reads the retrieved source packet, identifies the documents that support an answer, and writes a concise cited synthesis from that evidence.
+For the default `RAG` baseline, the top 100 Pyserini/ClimbMix BM25 results are candidate evidence. The agent acts as an evidence-grounded research reporter: it reads the retrieved source packet, identifies the documents that support an answer, and writes concise cited answer sentences from that evidence.
 
 - Review the retrieved candidate documents.
 - Reason over the evidence as a source packet, looking for corroboration, disagreement, missing context, and limits in coverage.
@@ -87,13 +48,6 @@ Default baseline answer-writing rules:
 Use `metadata.type: "manual"` when an agent interactively reads evidence and composes the answer. This remains true even if a script later packages the agent-written answer into JSONL, validates citations, or copies fields into the output schema.
 
 Use `metadata.type: "automatic"` only when a specified generator produces the answer text without manual per-topic composition by the agent. A deterministic template, heuristic extractor, or script-authored answer should not be treated as the default baseline RAG generator unless the run explicitly declares that generator as a custom system.
-
-When building the default baseline, keep the division of labor explicit:
-
-- Retrieval automation may write `r_output_trec_rag_2026.tsv`.
-- Scripts may retrieve, cache, rank, display, package, and validate evidence.
-- The final `answer[].text` values are written by the agent after reviewing the evidence.
-- The resulting `rag_output_trec_rag_2026.jsonl` uses `metadata.type: "manual"`.
 
 ## Baseline Steps
 

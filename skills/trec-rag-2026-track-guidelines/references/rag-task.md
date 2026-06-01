@@ -91,6 +91,16 @@ Run type guidance:
 - Use `metadata.type: "automatic"` when a declared system or generator produces the answer text without per-topic human or agent composition.
 - The distinction describes how the answer text was produced, not whether scripts were used for retrieval, packaging, validation, or JSONL formatting.
 
+## Evaluation: System-by-System Battles
+
+The TREC RAG organizers will evaluate submitted RAG responses using system-by-system battles. For each topic, responses from two submitted systems will be paired for side-by-side comparison, with system identities hidden and presentation order randomized. The evaluator will choose which response is better, or may indicate that the responses are tied when neither is clearly preferable.
+
+These battles are part of the track evaluation process and are not produced by participant agents or included in the submitted RAG JSONL output. Participants should focus on producing accurate, well-grounded, cited answers; the battle setup will be applied after submission by the evaluation organizers.
+
+Battle judgments will consider overall answer usefulness, factual correctness, coverage of important information, grounding in retrieved evidence, citation quality, and the presence of unsupported or misleading claims.
+
+Where additional diagnostic analysis is needed, the organizers may use nugget-based evaluation to explain battle outcomes. Nuggets represent atomic pieces of information expected in a strong response, and system answers may be analyzed according to whether those nuggets are supported, partially supported, or unsupported.
+
 ## Answer Rules
 
 - Break the final answer into individual sentences.
