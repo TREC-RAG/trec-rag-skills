@@ -6,7 +6,7 @@ Sources browsed May 31, 2026:
 - GitHub org: https://github.com/TREC-RAG
 - Hugging Face org: https://huggingface.co/TREC-RAG
 
-## One-Sentence Summary
+## Summary
 
 TREC RAG 2026 is the returning Text REtrieval Conference track for retrieval-augmented generation systems; the 2026 track is agent-first and uses NVIDIA's ClimbMix-400b corpus/index. This overview reference summarizes public overview, participation, timeline, and organizer information, while task-level guidelines are covered by the main `trec-rag-2026-track-guidelines` skill.
 
@@ -14,7 +14,7 @@ TREC RAG 2026 is the returning Text REtrieval Conference track for retrieval-aug
 
 The goals of TREC RAG 2026 are:
 
-1. **Automated Deep Research Question Generation**
+1. **Automating Deep Research Question Generation**
    - Given a corpus, can we automatically generate open-ended deep research questions that have underspecified goals, surface long-tail domains, and require many intermediate retrieval and reasoning steps to answer?
 2. **Developing Improved Evaluation Techniques for Agentic Search**
    - Developing accurate evaluation metrics for assessing retrieval in agentic search.
@@ -22,7 +22,7 @@ The goals of TREC RAG 2026 are:
 3. **Aligning Deep Research Datasets with LLM Pre-Training Corpora**
    - *Fairness*: Building a testbed to fairly evaluate when LLMs are "memorizing" versus genuinely "generalizing," since we know what the LLM has seen.
    - *Disentanglement*: Building a controlled setting for isolating the contributions of retrieval from the contributions of parametric knowledge in agentic search systems.
-4. **Understand and formulate what an agent-first community evaluation would look like**
+4. **Understanding and formulating what an agent-first community evaluation would look like**
    - Conducting a refreshed evaluation of modern coding agents, such as Codex and Claude Code, as automatic system-vs.-system "assessors" compared with humans and previous-generation LLMs.
    - Exploring how agents can reduce the overhead of participating in community evaluation efforts and broaden participation.
 
