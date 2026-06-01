@@ -12,10 +12,19 @@ TREC RAG 2026 is the returning Text REtrieval Conference track for retrieval-aug
 
 ## Track Goals
 
-- Foster research on retrieval-augmented generation systems.
-- Evaluate systems that combine retrieval over large corpora with LLM-based answer generation.
-- Provide a unified benchmark for end-to-end RAG, while preserving task boundaries that allow component-level analysis.
-- Emphasize relevant, accurate, up-to-date, contextually appropriate generated content grounded in retrieved evidence.
+The goals of TREC RAG 2026 are:
+
+1. **Automated Deep Research Question Generation**
+   - Given a corpus, can we automatically generate open-ended deep research questions that have underspecified goals, surface long-tail domains, and require many intermediate retrieval and reasoning steps to answer?
+2. **Developing Improved Evaluation Techniques for Agentic Search**
+   - Developing accurate evaluation metrics for assessing retrieval in agentic search.
+   - Developing accurate methods to evaluate agentic search answers through side-by-side answer comparisons.
+3. **Aligning Deep Research Datasets with LLM Pre-Training Corpora**
+   - *Fairness*: Building a testbed to fairly evaluate when LLMs are "memorizing" versus genuinely "generalizing," since we know what the LLM has seen.
+   - *Disentanglement*: Building a controlled setting for isolating the contributions of retrieval from the contributions of parametric knowledge in agentic search systems.
+4. **Understand and formulate what an agent-first community evaluation would look like**
+   - Conducting a refreshed evaluation of modern coding agents, such as Codex and Claude Code, as automatic system-vs.-system "assessors" compared with humans and previous-generation LLMs.
+   - Exploring how agents can reduce the overhead of participating in community evaluation efforts and broaden participation.
 
 ## 2026 Status
 
