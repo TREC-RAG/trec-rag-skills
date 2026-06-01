@@ -1,6 +1,6 @@
 # TREC RAG 2026 Track Reference
 
-Sources browsed April 25, 2026:
+Sources browsed May 31, 2026:
 
 - Home: https://trec-rag.github.io/
 - GitHub org: https://github.com/TREC-RAG
@@ -8,7 +8,7 @@ Sources browsed April 25, 2026:
 
 ## One-Sentence Summary
 
-TREC RAG 2026 is the returning Text REtrieval Conference track for retrieval-augmented generation systems; this intro reference summarizes public overview, participation, timeline, and organizer information, while the available task-level guidelines are in the separate `trec-rag-2026-track-guidelines` skill.
+TREC RAG 2026 is the returning Text REtrieval Conference track for retrieval-augmented generation systems; the 2026 track is agent-first and uses NVIDIA's ClimbMix-400b corpus/index. This overview reference summarizes public overview, participation, timeline, and organizer information, while task-level guidelines are covered by the main `trec-rag-2026-track-guidelines` skill.
 
 ## Track Goals
 
@@ -20,11 +20,15 @@ TREC RAG 2026 is the returning Text REtrieval Conference track for retrieval-aug
 ## 2026 Status
 
 - The site announces that TREC RAG is returning for 2026.
+- The site announces that TREC RAG 2026 will be agent-first and points agents to the TREC-RAG `trec-rag-skills` repository.
+- The site announces that TREC RAG 2026 will use NVIDIA's ClimbMix-400b.
+- Corpus details are not final on the public site yet, but the site says agents can begin using the corpus through the available SKILLz repository.
+- Public website updates for guidelines and timeline are still pending.
 - The 2026 task guidelines are available in the `trec-rag-2026-track-guidelines` skill.
 - Use `trec-rag-2026-track-guidelines` for task rules, baselines, output formats, ClimbMix/Pyserini defaults, and validation.
 - Public submission logistics, deadlines, upload procedures, and portal-specific requirements should be verified from the official site before submission-critical work.
 - Current 2026 timeline:
-  - Corpus released: Soon.
+  - Corpus Details: Soon.
   - Test topics released: TBD.
   - Baselines released: TBD.
   - Submission deadline: TBD.
@@ -34,9 +38,9 @@ TREC RAG 2026 is the returning Text REtrieval Conference track for retrieval-aug
 ## Participation Guidance
 
 - Register for TREC through NIST/Evalbase. The home page says to use the first bullet under Schedule to register an organization in Evalbase.
-- Join the Google Groups mailing list and Discord.
+- Join the Google Groups mailing list, Discord, and SIGIR Slack.
 - Include "TREC RAG" in Google Groups join requests.
-- Contact njedidi@uwaterloo.ca for Google Groups issues.
+- Contact njedidi@uwaterloo.ca for issues joining.
 
 ## 2026 Organizers
 

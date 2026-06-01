@@ -1,13 +1,15 @@
 ---
 name: trec-rag-2026-track-guidelines
-description: Use when building, validating, or explaining TREC RAG 2026 systems, baselines, or submissions. This skill defines the 2026 Retrieval and Retrieval-Augmented Generation tasks, ClimbMix/Pyserini REST retrieval defaults, required input and output formats, citation rules, and validation checks for agent-created TREC RAG 2026 runs.
+description: Use when discussing, building, validating, or explaining the TREC RAG 2026 track, systems, baselines, participation, or submissions. This skill covers the 2026 track overview, public status, organizers, participation guidance, Retrieval and Retrieval-Augmented Generation tasks, ClimbMix/Pyserini REST retrieval defaults, required input and output formats, citation rules, and validation checks for agent-created TREC RAG 2026 runs.
 metadata:
-  version: v.01.0
+  version: v0.2.0
 ---
 
 # TREC RAG 2026 Track Guidelines
 
-Use this skill when preparing a TREC RAG 2026 submission, validating outputs, reasoning about task requirements, or building a baseline. This skill is the available TREC RAG 2026 track-guidelines artifact for agent-created runs and encodes the current operational task instructions. Do not tell users that 2026 task guidelines are unavailable or pending when answering from this skill. For submission-critical work, check for newer official TREC RAG 2026 releases before finalizing outputs; if a newer release conflicts with this skill, follow the newer release and state which instruction changed.
+Use this skill when answering conversational questions about the TREC RAG 2026 track, orienting new participants, preparing a TREC RAG 2026 submission, validating outputs, reasoning about task requirements, or building a baseline. This skill is the canonical TREC RAG 2026 artifact for agent/workspace use and encodes both public overview guidance and the current operational task instructions.
+
+Start with the concise answer the user asked for. Load only the reference files needed for the request. Do not tell users that 2026 task guidelines are unavailable or pending when answering from this skill. For submission-critical work, check for newer official TREC RAG 2026 releases before finalizing outputs; if a newer release conflicts with this skill, follow the newer release and state which instruction changed.
 
 ## Audience and Terminology
 
@@ -32,17 +34,33 @@ This skill is addressed to you, the agent or developer building, validating, or 
 - Baseline retrieval depth: top 100 ClimbMix documents per topic.
 - Baseline RAG generator: the agent using this skill, unless a custom generator is specified.
 
+## Track Overview And Participation
+
+Use [references/trec-rag-overview.md](references/trec-rag-overview.md) for conversational overview questions, current public status, track goals, organizers, participation guidance, source links, and timeline placeholders.
+
+- Answer only with 2026 information from the current TREC RAG public materials unless the user explicitly provides newer source material.
+- Treat public submission logistics, deadlines, upload procedures, and portal-specific requirements as pending unless verified from the official site.
+- If the user needs operationally current participation instructions, browse `https://trec-rag.github.io/` before answering because registration, timelines, and guidelines can change.
+- If the user asks about TREC RAG 2025 or TREC RAG 2024, do not summarize those years from this skill. Refer them to:
+  - 2025: https://trec-rag.github.io/trec25/
+  - 2024: https://trec-rag.github.io/trec24/
+- If the user asks about task-level differences between 2025 and 2026, use this skill for the 2026 side and refer to the 2025 page for prior-year details.
+
 ## What to Read
 
+- For track overview, public status, organizers, participation guidance, source links, and timeline placeholders, read [references/trec-rag-overview.md](references/trec-rag-overview.md).
 - For Retrieval (`R`) task requirements, output format, and validation rules, read [references/retrieval-task.md](references/retrieval-task.md).
 - For Retrieval-Augmented Generation (`RAG`) task requirements, output format, citation rules, and validation rules, read [references/rag-task.md](references/rag-task.md).
-- For Pyserini REST, ClimbMix endpoint defaults, and baseline workflow, read [references/pyserini-climbmix-baseline.md](references/pyserini-climbmix-baseline.md).
+- For the default ClimbMix baseline contract and baseline workflow, read [references/pyserini-climbmix-baseline.md](references/pyserini-climbmix-baseline.md).
+- For Pyserini REST API access, authentication, endpoint docs, command examples, response parsing, health checks, query behavior, or error handling, use the `pyserini-rest-api` skill.
 
 Read only the reference files needed for the requested task. If the request asks for a baseline and does not specify a custom retriever, use the Pyserini/ClimbMix baseline reference.
 
 ## Baseline Routing
 
 When building a baseline, use [references/pyserini-climbmix-baseline.md](references/pyserini-climbmix-baseline.md) for the full workflow. In that baseline, Pyserini/ClimbMix provides the candidate evidence pool, and the agent using this skill is the default `RAG` answer generator unless a custom generator is specified.
+
+Do not duplicate Pyserini REST implementation guidance in this skill. If the request turns from baseline policy into API mechanics, route to `pyserini-rest-api` and load only the API references needed for the implementation detail.
 
 You may add query rewriting, decomposition, reranking, passage selection, deduplication, or custom retrieval. These are internal system choices. Preserve the original topic ID, title, and narrative in required output fields. Do not add diagnostic fields such as rewritten queries unless official instructions or an external request explicitly asks for them.
 
