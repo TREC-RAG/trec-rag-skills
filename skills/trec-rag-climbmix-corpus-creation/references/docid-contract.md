@@ -99,7 +99,7 @@ Treat any `FAIL` line as a blocker before indexing or evaluating, unless the mis
 
 ## Live API Spot Checks
 
-For stronger end-to-end validation, use the optional API validator:
+For stronger validation of the local docid-generation rule, use the optional API validator:
 
 ```bash
 python skills/trec-rag-climbmix-corpus-creation/scripts/validate_climbmix_docids_api.py \
@@ -115,6 +115,8 @@ GET /v1/climbmix-400b/doc/{docid}
 
 and compares the API document text to the local Parquet row text.
 
+This confirms that the bundled corpus creation script matches the official hosted `climbmix-400b` API for the sampled rows. It does not validate a user-built dense, sparse, hybrid, or chunked index after indexing. To validate a custom index, separately query that index and confirm its returned external IDs map back to the official ClimbMix `docid` values.
+
 Authentication follows the `pyserini-rest-api` skill's token-safety rules. The script can use `PYSERINI_API_TOKEN`, `.env.local`, or `.curlrc.pyserini-rest`; it must not print tokens or authorization headers.
 
 Useful options:
@@ -126,4 +128,4 @@ Useful options:
 - `--text-field`: force a particular local text field.
 - `--sleep`: add delay between API requests.
 
-Treat API validation as optional integration validation because it depends on network access, service availability, and a valid Pyserini API token. Do not block deterministic local corpus creation solely because the hosted API is unavailable.
+Treat API validation as optional integration validation of corpus generation because it depends on network access, service availability, and a valid Pyserini API token. Do not block deterministic local corpus creation solely because the hosted API is unavailable.

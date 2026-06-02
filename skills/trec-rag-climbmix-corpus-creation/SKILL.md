@@ -67,7 +67,7 @@ python skills/trec-rag-climbmix-corpus-creation/scripts/create_climbmix_corpus.p
   --max-checks 20
 ```
 
-For optional live validation against the hosted Pyserini REST API, use:
+For optional live validation of the local docid-generation rule against the hosted Pyserini REST API, use:
 
 ```bash
 python skills/trec-rag-climbmix-corpus-creation/scripts/validate_climbmix_docids_api.py \
@@ -75,13 +75,15 @@ python skills/trec-rag-climbmix-corpus-creation/scripts/validate_climbmix_docids
   --sample-size 20
 ```
 
+This checks that the bundled script's generated docids and local Parquet row text match the official hosted `climbmix-400b` API. It does not validate a downstream dense, sparse, hybrid, or chunked index after that index has been built.
+
 This requires Pyserini REST API access and a local token mechanism such as `PYSERINI_API_TOKEN`, `.env.local`, or `.curlrc.pyserini-rest`. Do not print tokens, authorization headers, `.env.local`, or `.curlrc.pyserini-rest`.
 
 Before treating a custom corpus or index as TREC-compatible, verify:
 
 - Generated docids have the expected format for ClimbMix shards, such as `shard_01789_3390`.
 - Known stage1 candidates match both generated docids and source text.
-- Optional API spot checks pass against `/v1/climbmix-400b/doc/{docid}` when API access is available.
+- Optional API spot checks pass against `/v1/climbmix-400b/doc/{docid}` when API access is available. These spot checks validate corpus/docid generation, not a custom index built later.
 - The indexing pipeline stores the generated docid as the retrievable external document ID.
 - Retrieval run files use the generated ClimbMix docids exactly.
 
