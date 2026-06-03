@@ -20,6 +20,8 @@ and contain a `text` column without a stable string document ID column.
 
 ## Anserini FineWebCollection Semantics
 
+> **Naming note:** `FineWebCollection` is the Anserini reader name from the NanoKnow SIGIR work. Since ClimbMix reuses the same shuffled-Parquet docid convention as `karpathy/fineweb-edu-100b-shuffle`, we reuse those semantics here.
+
 The bundled script implements Anserini `FineWebCollection` document ID behavior:
 
 1. Look for the first string ID-like Parquet field in this order: `id`, `docid`, `doc_id`, `document_id`, then any field containing `id`.
