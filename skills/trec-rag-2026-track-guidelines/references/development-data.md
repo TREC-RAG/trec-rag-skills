@@ -8,6 +8,8 @@ Sources checked June 12, 2026:
 - ResearchRubrics paper: https://arxiv.org/abs/2511.07685
 - Nugget background: https://arxiv.org/abs/2504.15068
 
+These links are provenance and optional background. Agents normally should not open them unless the user asks for deeper context, citations, or source verification.
+
 ## Summary
 
 TREC RAG 2026 development data is an early public practice set for building and evaluating systems before the official evaluation topics are released. Use it for smoke tests, retrieval tuning, prompt iteration, RAG answer-generation practice, and validation rehearsals.
