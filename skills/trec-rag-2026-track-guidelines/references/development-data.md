@@ -73,7 +73,7 @@ Each JSONL object has prompt metadata plus:
 - `rubrics[].weight`: numeric criterion weight. Positive weights reward desired answer properties; negative weights penalize failure modes.
 - `rubrics[].axis`: rubric category, such as communication quality, implicit criteria, instruction following, synthesis, or references and citation quality.
 
-Use these rubrics to evaluate or improve generated answers. They describe what a strong answer should contain, but they are not source evidence. Do not cite them as factual support in a submitted RAG answer; cite retrieved ClimbMix documents instead.
+Use these rubrics only to evaluate an agent's generated answer after it is produced. They describe what a strong answer should contain, but they are not source evidence or generation input. Do not cite them as factual support in a submitted RAG answer; cite retrieved ClimbMix documents instead.
 
 ### `rag25-dev-umbrela-qrels/*.qrels`
 
