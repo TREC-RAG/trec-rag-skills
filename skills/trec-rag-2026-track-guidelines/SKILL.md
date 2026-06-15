@@ -52,6 +52,7 @@ Use [references/trec-rag-overview.md](references/trec-rag-overview.md) for conve
 - For track overview, public status, organizers, participation guidance, source links, and timeline placeholders, read [references/trec-rag-overview.md](references/trec-rag-overview.md).
 - For Retrieval (`R`) task requirements, output format, and validation rules, read [references/retrieval-task.md](references/retrieval-task.md).
 - For Retrieval-Augmented Generation (`RAG`) task requirements, output format, citation rules, and validation rules, read [references/rag-task.md](references/rag-task.md).
+- For released development topics, nuggets, rubrics, projected qrels, smoke tests, retrieval tuning, prompt iteration, or practice evaluation, read [references/development-data.md](references/development-data.md).
 - For the default ClimbMix baseline contract and baseline workflow, read [references/pyserini-climbmix-baseline.md](references/pyserini-climbmix-baseline.md).
 - For Pyserini REST API access, authentication, endpoint docs, command examples, response parsing, health checks, query behavior, or error handling, use the `pyserini-rest-api` skill.
 

@@ -1,10 +1,11 @@
 # TREC RAG 2026 Track Reference
 
-Sources browsed May 31, 2026:
+Sources browsed May 31 and June 12, 2026:
 
 - Home: https://trec-rag.github.io/
 - GitHub org: https://github.com/TREC-RAG
 - Hugging Face org: https://huggingface.co/TREC-RAG
+- Development data: https://github.com/TREC-RAG/trec-rag-data/tree/main/trec-rag-2026/development-data
 
 ## Summary
 
@@ -32,13 +33,16 @@ The goals of TREC RAG 2026 are:
 - The site announces that TREC RAG 2026 will be agent-first and points agents to the TREC-RAG `trec-rag-skills` repository.
 - The site announces that TREC RAG 2026 will use NVIDIA's ClimbMix-400b.
 - Corpus details are not final on the public site yet, but the site says agents can begin using the corpus through the available SKILLz repository.
+- Development data is released at https://github.com/TREC-RAG/trec-rag-data/tree/main/trec-rag-2026/development-data. It includes practice topics, diagnostic nuggets and rubrics, and projected ClimbMix qrels for system development.
 - Public website updates for guidelines and timeline are still pending.
 - The 2026 task guidelines are available in the `trec-rag-2026-track-guidelines` skill.
+- Use `references/development-data.md` when people want to test or evaluate systems with the released development topics, nuggets, rubrics, and qrels; it explains what each file is and how to use it safely.
 - Use `trec-rag-2026-track-guidelines` for task rules, baselines, output formats, ClimbMix/Pyserini defaults, and validation.
 - Public submission logistics, deadlines, upload procedures, and portal-specific requirements should be verified from the official site before submission-critical work.
 - Current 2026 timeline:
   - Corpus Details: Soon.
-  - Test topics released: TBD.
+  - Development topics released: June 12, 2026.
+  - Official evaluation topics released: expected early July 2026.
   - Baselines released: TBD.
   - Submission deadline: TBD.
   - Results and judgments returned: TBD.
