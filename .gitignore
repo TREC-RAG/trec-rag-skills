@@ -1,3 +1,7 @@
 .env.local
 .curlrc.pyserini-rest
 .DS_Store
+__pycache__/
+*.pyc
+baselines/rag25_climbmix/cache/
+baselines/rag25_climbmix/runs/smoke/
