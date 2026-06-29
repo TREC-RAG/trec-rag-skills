@@ -1,9 +1,0 @@
-HTTP/1.1 200 OK
-Server: nginx/1.24.0 (Ubuntu)
-Date: Mon, 29 Jun 2026 23:09:14 GMT
-Content-Type: application/json
-Content-Length: 166
-Connection: keep-alive
-x-request-id: 871fedafcab240deb73d348371182d7c
-
-{"name":"Pyserini API","version":"v1","description":"REST API aligned with Anserini (Lucene indexes via Pyserini).","openapi":"/openapi.yaml","documentation":"/docs"}
