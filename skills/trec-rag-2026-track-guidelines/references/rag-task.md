@@ -92,11 +92,13 @@ Required fields:
 
 Do not add extra keys to the `metadata` object. If a system needs to document prompts, generation type, retrieval configuration, or other diagnostics, include a concise summary in `metadata.run_desc` or keep the details in separate run documentation rather than the submitted RAG JSONL metadata.
 
-## Evaluation: System-by-System Battles
+## Evaluation
 
 The TREC RAG organizers will evaluate submitted RAG responses using system-by-system battles. For each topic, responses from two submitted systems will be paired for side-by-side comparison, with system identities hidden and presentation order randomized. The evaluator will choose which response is better, or may indicate that the responses are tied when neither is clearly preferable.
 
-These battles are part of the track evaluation process and are not produced by participant agents or included in the submitted RAG JSONL output. Participants should focus on producing accurate, well-grounded, cited answers; the battle setup will be applied after submission by the evaluation organizers.
+Each submitted response will also receive individualized nugget rubric scoring in the style of AutoNuggetizer. This evaluates each response independently against topic-specific nugget criteria rather than only through pairwise comparison.
+
+Both evaluation procedures are organizer-run and are not produced by participant agents or included in the submitted RAG JSONL output. Participants should focus on producing accurate, well-grounded, cited answers; the evaluation will be applied after submission by the organizers.
 
 ## Answer Rules
 

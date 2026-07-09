@@ -33,7 +33,7 @@ This skill is addressed to you, the agent or developer building, validating, or 
 - RAG output filename: `rag_output_trec_rag_2026.jsonl`.
 - RAG response length: up to 1024 words per topic.
 - RAG sentence citation limit: up to 3 references per answer sentence.
-- RAG evaluation: organizer-run, anonymized system-by-system battles over submitted responses.
+- RAG evaluation: organizer-run, anonymized system-by-system battles over submitted responses plus individualized nugget rubric scoring in the style of AutoNuggetizer.
 - Retrieval depth: participant-chosen; there is no fixed maximum number of submitted documents per topic.
 
 ## Track Overview And Participation
@@ -56,9 +56,7 @@ Use [references/trec-rag-overview.md](references/trec-rag-overview.md) for conve
 - For released development topics, nuggets, rubrics, projected qrels, smoke tests, retrieval tuning, prompt iteration, or practice evaluation, read [references/development-data.md](references/development-data.md).
 - For Pyserini REST API access, authentication, endpoint docs, command examples, response parsing, health checks, query behavior, or error handling, use the `pyserini-rest-api` skill.
 
-Read only the reference files needed for the requested task. For baseline policy and output requirements, use the applicable Retrieval or RAG task reference. For API mechanics, route to `pyserini-rest-api` and load only the API references needed for the implementation detail.
-
-You may add query rewriting, decomposition, reranking, passage selection, deduplication, or custom retrieval. These are internal system choices. Preserve the original topic ID and topic text in required output fields. Do not add diagnostic fields such as rewritten queries unless official instructions or an external request explicitly asks for them.
+Read only the reference files needed for the requested task. For API mechanics, route to `pyserini-rest-api` and load only the API references needed for the implementation detail.
 
 ## Validation Checklist
 
