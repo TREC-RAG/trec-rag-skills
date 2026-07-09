@@ -5,3 +5,4 @@ __pycache__/
 *.pyc
 baselines/rag25_climbmix/cache/
 baselines/rag25_climbmix/runs/smoke/
+/tmp/
