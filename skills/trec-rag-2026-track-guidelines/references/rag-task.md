@@ -12,7 +12,7 @@ Unlike the removed `AG` task, the 2026 `RAG` task does not assume a fixed provid
 
 ## Input Format: Topics
 
-Use the same `trec_rag_2026_queries.tsv` topic file as the Retrieval task. Each input line contains two tab-separated fields: topic ID and topic text. Preserve the topic ID exactly in `metadata.narrative_id` and copy the topic text exactly into `metadata.narrative`.
+Use the official shared test-topic file described in [test-data.md](test-data.md). Each input line in `trec_rag_2026_queries.tsv` contains two tab-separated fields: topic ID and narrative. Preserve the topic ID exactly in `metadata.narrative_id` and copy the narrative exactly into `metadata.narrative`.
 
 Example:
 
@@ -82,7 +82,7 @@ Required fields:
 
 - `metadata.team_id`: team identifier.
 - `metadata.narrative_id`: topic ID from the first column of `trec_rag_2026_queries.tsv`.
-- `metadata.narrative`: topic text from the second column of `trec_rag_2026_queries.tsv`, copied exactly.
+- `metadata.narrative`: narrative from the second column of `trec_rag_2026_queries.tsv`, copied exactly.
 - `metadata.run_id`: run identifier.
 - `metadata.run_desc`: short description of the submitted system or run.
 - `references`: ordered list of retrieved ClimbMix document IDs cited by the answer. Do not include uncited documents.
