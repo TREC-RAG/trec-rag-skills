@@ -4,15 +4,15 @@ Use this reference when building, explaining, or validating the TREC RAG 2026 Re
 
 ## Task Summary
 
-- **Given**: a list of topics and access to ClimbMix retrieval results and document contents.
-- **Task**: retrieve relevant evidence and return a summarized answer grounded in that evidence.
+- **Given**: a list of narratives and access to ClimbMix retrieval results and document contents.
+- **Task**: retrieve relevant evidence and return a summarized answer grounded in that evidence for each narrative.
 - **Notes**: this task best matches an industrial RAG setup that combines retrieval, evidence selection, and generation. The answer should be evaluated as both an answer and a grounded, cited use of retrieved material.
 
 Unlike the removed `AG` task, the 2026 `RAG` task does not assume a fixed provided evidence set. The system is responsible for retrieval. Use the Pyserini REST baseline retriever when focusing on answer generation.
 
-## Input Format: Topics
+## Input Format: Narratives
 
-Use the official shared test-topic file described in [test-data.md](test-data.md). Each input line in `trec_rag_2026_queries.tsv` contains two tab-separated fields: topic ID and narrative. Preserve the topic ID exactly in `metadata.narrative_id` and copy the narrative exactly into `metadata.narrative`.
+Use the official shared test-narrative file described in [test-data.md](test-data.md). Each input line in `trec_rag_2026_queries.tsv` contains two tab-separated fields: narrative ID and narrative. Preserve the narrative ID exactly in `metadata.narrative_id` and copy the narrative exactly into `metadata.narrative`.
 
 Example:
 
@@ -49,7 +49,7 @@ If a system chunks documents internally, keep final `references` tied to ClimbMi
 
 ## Output Format: RAG Output
 
-For official submissions, provide JSONL in `rag_output_trec_rag_2026.jsonl`, with one JSON object per topic.
+For official submissions, provide JSONL in `rag_output_trec_rag_2026.jsonl`, with one JSON object per narrative.
 
 ```json
 {
@@ -81,12 +81,12 @@ For official submissions, provide JSONL in `rag_output_trec_rag_2026.jsonl`, wit
 Required fields:
 
 - `metadata.team_id`: team identifier.
-- `metadata.narrative_id`: topic ID from the first column of `trec_rag_2026_queries.tsv`.
+- `metadata.narrative_id`: narrative ID from the first column of `trec_rag_2026_queries.tsv`.
 - `metadata.narrative`: narrative from the second column of `trec_rag_2026_queries.tsv`, copied exactly.
 - `metadata.run_id`: run identifier.
 - `metadata.run_desc`: short description of the submitted system or run.
 - `references`: ordered list of retrieved ClimbMix document IDs cited by the answer. Do not include uncited documents.
-- `answer`: array of sentence-level answer objects. The full response may be up to 1024 words per topic.
+- `answer`: array of sentence-level answer objects. The full response may be up to 1024 words per narrative.
 - `answer[].text`: answer sentence.
 - `answer[].citations`: up to three zero-indexed positions into `references` for that sentence.
 
@@ -94,16 +94,16 @@ Do not add extra keys to the `metadata` object. If a system needs to document pr
 
 ## Evaluation
 
-The TREC RAG organizers will evaluate submitted RAG responses using system-by-system battles. For each topic, responses from two submitted systems will be paired for side-by-side comparison, with system identities hidden and presentation order randomized. The evaluator will choose which response is better, or may indicate that the responses are tied when neither is clearly preferable.
+The TREC RAG organizers will evaluate submitted RAG responses using system-by-system battles. For each narrative, responses from two submitted systems will be paired for side-by-side comparison, with system identities hidden and presentation order randomized. The evaluator will choose which response is better, or may indicate that the responses are tied when neither is clearly preferable.
 
-Each submitted response will also receive individualized nugget rubric scoring in the style of AutoNuggetizer. This evaluates each response independently against topic-specific nugget criteria rather than only through pairwise comparison.
+Each submitted response will also receive individualized nugget rubric scoring in the style of AutoNuggetizer. This evaluates each response independently against narrative-specific nugget criteria rather than only through pairwise comparison.
 
 Both evaluation procedures are organizer-run and are not produced by participant agents or included in the submitted RAG JSONL output. Participants should focus on producing accurate, well-grounded, cited answers; the evaluation will be applied after submission by the organizers.
 
 ## Answer Rules
 
 - Break the final answer into individual sentences.
-- Keep the full response at or below 1024 words per topic.
+- Keep the full response at or below 1024 words per narrative.
 - Ground each sentence in retrieved evidence.
 - Cite no more than three references per sentence.
 - Every citation must be an integer index into `references`.
@@ -115,7 +115,7 @@ Both evaluation procedures are organizer-run and are not produced by participant
 ## Validation Rules
 
 - `rag_output_trec_rag_2026.jsonl` must be valid JSONL, with one complete object per line.
-- Every input topic must have exactly one RAG object unless a subset was explicitly requested.
+- Every input narrative must have exactly one RAG object unless a subset was explicitly requested.
 - Every RAG object must have `metadata`, `references`, and `answer`.
 - Every RAG citation must be a valid zero-indexed reference position.
 - Every `answer[].citations` array must contain no more than three reference positions.
