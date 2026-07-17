@@ -4,14 +4,14 @@ Sources checked July 17, 2026:
 
 - Release announcement: https://x.com/TREC_RAG/status/2074513634043064419
 - Track homepage: https://trec-rag.github.io/
-- Official data directory: https://github.com/TREC-RAG/trec-rag-data/tree/main/trec-rag-2026/test-data
+- Data repository: https://github.com/TREC-RAG/trec-rag-data
 - Official narrative file: https://github.com/TREC-RAG/trec-rag-data/blob/main/trec-rag-2026/test-data/trec_rag_2026_queries.tsv
 
 ## Summary
 
 The official TREC RAG 2026 test narratives have been released. The same test-data file is the input for both the Retrieval (`R`) and Retrieval-Augmented Generation (`RAG`) tasks.
 
-Use the official file from the `TREC-RAG/trec-rag-data` repository:
+Use the official file from the [`TREC-RAG/trec-rag-data`](https://github.com/TREC-RAG/trec-rag-data) repository:
 
 ```text
 trec-rag-2026/test-data/trec_rag_2026_queries.tsv
