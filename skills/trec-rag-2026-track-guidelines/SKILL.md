@@ -2,7 +2,7 @@
 name: trec-rag-2026-track-guidelines
 description: Use when discussing, building, validating, or explaining the TREC RAG 2026 track, systems, baselines, participation, or submissions. This skill covers the 2026 track overview, released test and development data, public status, organizers, participation guidance, Retrieval and Retrieval-Augmented Generation tasks, ClimbMix/Pyserini REST retrieval defaults, required input and output formats, citation rules, and validation checks for agent-created TREC RAG 2026 runs.
 metadata:
-  version: v0.5.0
+  version: v0.6.0
 ---
 
 # TREC RAG 2026 Track Guidelines
@@ -39,6 +39,8 @@ This skill is addressed to you, the agent or developer building, validating, or 
 - RAG output filename: `rag_output_trec_rag_2026.jsonl`.
 - RAG response length: up to 1024 words per narrative.
 - RAG sentence citation limit: up to 3 references per answer sentence.
+- RAG citations may use either zero-based positions into `references` or ClimbMix document IDs directly.
+- RAG metadata may include participant-defined fields, and `references` may include documents that are not cited in the answer.
 - RAG evaluation: organizer-run, anonymized system-by-system battles over submitted responses plus individualized nugget rubric scoring in the style of AutoNuggetizer.
 - Retrieval depth: choose `k` independently for each narrative and submit all and only the documents predicted to be relevant and useful for answer generation. Do not pad outputs to a fixed cutoff; `k` may vary across narratives and has no fixed maximum.
 

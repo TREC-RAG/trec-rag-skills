@@ -41,9 +41,9 @@ A RAG system may:
 
 The Pyserini REST API schema allows `doc` to be a string, object, array, number, boolean, or null depending on index contents and `parse` behavior. Current ClimbMix search responses commonly return `doc` as a string containing the document text. If `doc` is an object, extract its text-bearing field such as `text` or `contents`; if it is a string, use the string directly.
 
-Use the ClimbMix `docid` as the cited evidence identifier in final RAG `references`. Use the document text only as evidence for writing cited answer sentences. Do not include full document payloads, raw snippets, ranks, or scores in the submitted RAG JSONL unless official instructions explicitly require them.
+Use the ClimbMix `docid` as the evidence identifier in final RAG `references`. Use the document text as evidence for writing cited answer sentences. Keep `references` as a list of document IDs rather than full document payloads; ranks, scores, snippets, retrieval settings, and other participant-defined information may be recorded as additional metadata when useful.
 
-Do not copy all top-ranked retrieved documents into `references` by default. Include only documents that directly support at least one generated answer sentence.
+The `references` list may include retrieved documents that are not cited by any answer sentence. Uncited entries do not hurt the score. Systems may therefore preserve a larger retrieved evidence set in `references`, although keeping only useful documents can make submissions easier to inspect.
 
 If a system chunks documents internally, keep final `references` tied to ClimbMix document IDs.
 
@@ -58,7 +58,9 @@ For official submissions, provide JSONL in `rag_output_trec_rag_2026.jsonl`, wit
     "narrative_id": "rag2026-37",
     "narrative": "I work for a New York City council member whose district has a lot of transit riders but also some small businesses worried about delivery costs. Can you help me understand whether congestion pricing is a credible and fair way to fund the MTA? What should we weigh about the revenue promise, who pays, who benefits, environmental tradeoffs in places like the Bronx and New Jersey, and whether the MTA and Albany can be held accountable for actually spending the money on reliable service instead of repeating past mistakes?",
     "run_id": "my-rag-run",
-    "run_desc": "BM25 top-100 ClimbMix retrieval with agent-written evidence-grounded sentence answers."
+    "run_desc": "BM25 top-100 ClimbMix retrieval with agent-written evidence-grounded sentence answers.",
+    "generator": "example-model",
+    "retrieval_depth": 100
   },
   "references": [
     "shard_00459_61697",
@@ -78,6 +80,23 @@ For official submissions, provide JSONL in `rag_output_trec_rag_2026.jsonl`, wit
 }
 ```
 
+The example above uses zero-based reference positions. The same citations may instead name the supporting document IDs directly:
+
+```json
+{
+  "answer": [
+    {
+      "text": "Congestion pricing should be assessed by whether it can provide reliable dedicated revenue for transit improvements while managing the distribution of costs across drivers, riders, and affected neighborhoods.",
+      "citations": ["shard_00459_61697", "shard_01012_88420"]
+    },
+    {
+      "text": "A credible plan should also explain how environmental impacts, delivery concerns, and MTA spending accountability will be monitored after implementation.",
+      "citations": ["shard_01012_88420", "shard_00210_44018"]
+    }
+  ]
+}
+```
+
 Required fields:
 
 - `metadata.team_id`: team identifier.
@@ -85,12 +104,13 @@ Required fields:
 - `metadata.narrative`: narrative from the second column of `trec_rag_2026_queries.tsv`, copied exactly.
 - `metadata.run_id`: run identifier.
 - `metadata.run_desc`: short description of the submitted system or run.
-- `references`: ordered list of retrieved ClimbMix document IDs cited by the answer. Do not include uncited documents.
+- `metadata`: may also contain any additional participant-defined fields.
+- `references`: ordered list of retrieved ClimbMix document IDs. It may include documents that are not cited by the answer; uncited references do not hurt the score.
 - `answer`: array of sentence-level answer objects. The full response may be up to 1024 words per narrative.
 - `answer[].text`: answer sentence.
-- `answer[].citations`: up to three zero-indexed positions into `references` for that sentence.
+- `answer[].citations`: up to three citations for that sentence. Each citation may be either a zero-based integer position into `references` or the corresponding ClimbMix `docid` string written directly.
 
-Do not add extra keys to the `metadata` object. If a system needs to document prompts, generation type, retrieval configuration, or other diagnostics, include a concise summary in `metadata.run_desc` or keep the details in separate run documentation rather than the submitted RAG JSONL metadata.
+Additional metadata is welcome. A system may use participant-defined metadata fields to document prompts, generation type, retrieval configuration, diagnostics, or other useful run information, as long as the required metadata fields remain present and valid.
 
 ## Evaluation
 
@@ -106,10 +126,10 @@ Both evaluation procedures are organizer-run and are not produced by participant
 - Keep the full response at or below 1024 words per narrative.
 - Ground each sentence in retrieved evidence.
 - Cite no more than three references per sentence.
-- Every citation must be an integer index into `references`.
-- Do not cite documents that are missing from `references`.
-- Every document in `references` should be cited by at least one answer sentence.
-- Sort citation indices by support strength when the system can estimate support.
+- Encode each citation either as a valid zero-based integer position into `references` or as the exact ClimbMix `docid` of the supporting entry in `references`.
+- Attribute each claim to the correct supporting document. A direct `docid` citation must exactly match the intended entry in `references`; an integer citation must resolve to that intended entry.
+- Documents in `references` do not need to be cited by an answer sentence, and uncited references do not hurt the score.
+- For sentences with multiple citations, order the citations from strongest to weakest support.
 - Avoid unsupported claims, even if the model knows them from prior knowledge.
 
 ## Validation Rules
@@ -117,8 +137,8 @@ Both evaluation procedures are organizer-run and are not produced by participant
 - `rag_output_trec_rag_2026.jsonl` must be valid JSONL, with one complete object per line.
 - Every input narrative must have exactly one RAG object unless a subset was explicitly requested.
 - Every RAG object must have `metadata`, `references`, and `answer`.
-- Every RAG citation must be a valid zero-indexed reference position.
-- Every `answer[].citations` array must contain no more than three reference positions.
-- Every RAG reference must be cited by at least one answer sentence.
+- Every RAG citation must be either a valid zero-based position in `references` or a document ID that exactly matches an entry in `references`.
+- Every `answer[].citations` array must contain no more than three citations.
+- Do not reject or penalize a RAG object because `metadata` has additional fields or because `references` contains uncited document IDs.
 - Every RAG answer must be no more than 1024 words.
 - Answer claims must be supported by cited references.
