@@ -77,6 +77,7 @@ Before considering a run complete, verify:
 - Official full runs cover all 119 released test narratives and preserve every `rag2026-*` identifier exactly.
 - Retrieval output follows [references/retrieval-task.md](references/retrieval-task.md).
 - RAG output follows [references/rag-task.md](references/rag-task.md).
+- Apply only the explicit structural rules in `rag-task.md`; do not introduce additional stylistic validation requirements.
 - No secrets, API tokens, `.env.local` contents, or authorization headers appear in outputs.
 
 ## When Requirements Are Unclear

@@ -108,6 +108,9 @@ Required fields:
 - `references`: ordered list of retrieved ClimbMix document IDs. It may include documents that are not cited by the answer; uncited references do not hurt the score.
 - `answer`: array of sentence-level answer objects. The full response may be up to 1024 words per narrative.
 - `answer[].text`: answer sentence.
+
+“Sentence-level” describes the intended citation granularity. Validators should treat `answer[].text` as an opaque, non-empty text string and should not attempt grammatical sentence detection. Markdown formatting, including standalone section headings, is permitted. Such formatting must still satisfy the normal citation and word-limit requirements.
+
 - `answer[].citations`: up to three citations for that sentence. Each citation may be either a zero-based integer position into `references` or the corresponding ClimbMix `docid` string written directly.
 
 Additional metadata is welcome. A system may use participant-defined metadata fields to document prompts, generation type, retrieval configuration, diagnostics, or other useful run information, as long as the required metadata fields remain present and valid.
@@ -142,3 +145,4 @@ Both evaluation procedures are organizer-run and are not produced by participant
 - Do not reject or penalize a RAG object because `metadata` has additional fields or because `references` contains uncited document IDs.
 - Every RAG answer must be no more than 1024 words.
 - Answer claims must be supported by cited references.
+- Do not reject an answer solely because `answer[].text` contains Markdown, a heading, a label, or lacks sentence-final punctuation.
