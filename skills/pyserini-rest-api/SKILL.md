@@ -2,7 +2,7 @@
 name: pyserini-rest-api
 description: Use for accessing the Pyserini REST API, which is the official API for the TREC RAG tracks.
 metadata:
-  version: v0.2.0
+  version: v0.2.1
   source_url: https://github.com/TREC-RAG/trec-rag-skills/tree/main/skills/pyserini-rest-api
 ---
 
@@ -154,6 +154,22 @@ Parameters:
 - `docid`: required path string
 - `parse`: optional boolean, default `true`; omit it unless the user explicitly asks to control raw vs. parsed output. See `references/search-behavior.md` for detailed `parse` behavior.
 
+## Request Pacing and Rate Limits
+
+The API is a shared resource. Pace scripted and agentic workloads so concurrent requests stay bounded and `429 Too Many Requests` responses are avoided.
+
+The core rule is closed-loop issuance: never issue a new request before a previous one has returned. Total in-flight requests then never exceed the number of workers, and slow responses automatically slow the client instead of piling up.
+
+Mandatory pacing rules:
+
+- Each worker issues requests strictly sequentially: send the next request only after the previous response or error has been received. Do not fire requests on a timer regardless of completions, and do not launch unbounded async fan-out.
+- Bound total concurrency with a fixed, modest worker count. Around a dozen concurrent sequential workers is acceptable; reduce the count if errors or slow responses appear.
+- On HTTP `429`, stop and back off before retrying: honor the `Retry-After` response header when present; otherwise wait with exponential backoff (for example 1s, 2s, 4s, capped at 60s) and retry a bounded number of times. Treat repeated `429` after backoff as a signal to reduce the worker count, not to retry harder.
+- Apply the same bounded backoff to transient `5xx` responses and timeouts; never tight-loop on a failing request.
+- Run the Health Check procedure as a one-shot check, not in a polling loop.
+
+In practice, multi-week agentic retrieval workloads against `climbmix-400b` (roughly a dozen concurrent workers, each strictly sequential, tens of thousands of search and document requests) completed without a single `429` and needed no explicit QPS limiter: closed-loop issuance alone kept the effective request rate low, because each worker spends most of its time processing results between calls.
+
 ## Response Shape
 
 For search and document response examples, read `references/search-behavior.md` when implementing clients, inspecting `doc` contents, or validating response parsing. By default, `doc` is returned as a parsed JSON structure when possible.
@@ -188,8 +204,9 @@ When helping with this API:
 6. When using the recommended repo-local curl workflow, use `curl -sS -K .curlrc.pyserini-rest -o tmp/pyserini-rest-*.json` for all Pyserini REST requests so the token stays out of command lines and the command prefix can be approved once for network access.
 7. Use `/v1/{index}/search` for retrieval and `/v1/{index}/doc/{docid}` for follow-up fetches.
 8. Run `jq` only as a separate local command against the saved `tmp/pyserini-rest-*.json` file; avoid `curl | jq` pipelines.
-9. Omit `parse` by default; read `references/search-behavior.md` before changing it.
-10. Formulate queries as ordinary text; avoid assuming Lucene query syntax support.
-11. Read `references/search-behavior.md` when the user asks about raw stored payloads, query semantics, or detailed response interpretation.
-12. Read `references/error-behavior.md` when debugging clients or explaining non-`200` API responses.
-13. When debugging clients, check HTTP status and the JSON `error` field first.
+9. Pace requests closed-loop: never issue a new request before a previous one returns, bound the worker count, and back off on `429` or `5xx` per Request Pacing and Rate Limits.
+10. Omit `parse` by default; read `references/search-behavior.md` before changing it.
+11. Formulate queries as ordinary text; avoid assuming Lucene query syntax support.
+12. Read `references/search-behavior.md` when the user asks about raw stored payloads, query semantics, or detailed response interpretation.
+13. Read `references/error-behavior.md` when debugging clients or explaining non-`200` API responses.
+14. When debugging clients, check HTTP status and the JSON `error` field first.
