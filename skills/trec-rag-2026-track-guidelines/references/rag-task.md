@@ -106,9 +106,14 @@ Required fields:
 - `metadata.run_desc`: short description of the submitted system or run.
 - `metadata`: may also contain any additional participant-defined fields.
 - `references`: ordered list of retrieved ClimbMix document IDs. It may include documents that are not cited by the answer; uncited references do not hurt the score.
-- `answer`: array of sentence-level answer objects. The full response may be up to 1024 words per narrative.
+- `answer`: array of sentence-level answer objects. The full response may be up to 1,024 words per narrative.
 - `answer[].text`: answer sentence.
-- `answer[].citations`: up to three citations for that sentence. Each citation may be either a zero-based integer position into `references` or the corresponding ClimbMix `docid` string written directly.
+
+“Sentence-level” describes the intended citation granularity. Validators should treat `answer[].text` as an opaque, non-empty text string and should not attempt grammatical sentence detection. Markdown formatting, including standalone section headings, is permitted. Such formatting must still satisfy the normal citation and word-limit requirements.
+
+For the 1,024-word limit, “word” is defined in Python parlance using `str.split()` with no separator. Count each answer object's text with `len(text.split())` and sum those counts across the `answer` array. Equivalently, compute `sum(len(item["text"].split()) for item in answer)`.
+
+- `answer[].citations`: array of zero to three citations for that answer object. An empty array (`[]`) is valid. Each citation may be either a zero-based integer position into `references` or the corresponding ClimbMix `docid` string written directly.
 
 Additional metadata is welcome. A system may use participant-defined metadata fields to document prompts, generation type, retrieval configuration, diagnostics, or other useful run information, as long as the required metadata fields remain present and valid.
 
@@ -118,14 +123,23 @@ The TREC RAG organizers will evaluate submitted RAG responses using system-by-sy
 
 Each submitted response will also receive individualized nugget rubric scoring in the style of AutoNuggetizer. This evaluates each response independently against narrative-specific nugget criteria rather than only through pairwise comparison.
 
-Both evaluation procedures are organizer-run and are not produced by participant agents or included in the submitted RAG JSONL output. Participants should focus on producing accurate, well-grounded, cited answers; the evaluation will be applied after submission by the organizers.
+Evidence support is scored in two complementary dimensions:
+
+- **Weighted citation precision** measures the weighted proportion of supplied citations that support their associated answer sentence or object. It evaluates only answer objects with one or more citations and asks whether those citations are correct.
+- **Weighted citation recall** measures the weighted proportion of answer sentences or objects that are supported by their cited passages. An answer object with no citations receives a support score of 0 for weighted recall.
+
+An answer object with no citations is omitted from citation-precision scoring and receives a support score of 0 for weighted recall. Therefore, any scoring penalty for choosing zero citations is applied through citation recall, not citation precision.
+
+For additional background on this support-evaluation methodology, see Thakur et al., [*Assessing Support for the TREC 2024 RAG Track: A Large-Scale Comparative Study of LLM and Human Evaluations*](https://dl.acm.org/doi/pdf/10.1145/3726302.3730165).
+
+These evaluation procedures are organizer-run and are not produced by participant agents or included in the submitted RAG JSONL output. Participants should focus on producing accurate, well-grounded, cited answers; the evaluation will be applied after submission by the organizers.
 
 ## Answer Rules
 
-- Break the final answer into individual sentences.
-- Keep the full response at or below 1024 words per narrative.
+- Break prose into sentence-level answer objects. Standalone Markdown elements, including section headings, labels, and table rows, may occupy their own answer objects.
+- Keep the full response at or below 1,024 words per narrative using the word-count definition above.
 - Ground each sentence in retrieved evidence.
-- Cite no more than three references per sentence.
+- Use zero to three citations per answer object. An empty `citations` array is permitted.
 - Encode each citation either as a valid zero-based integer position into `references` or as the exact ClimbMix `docid` of the supporting entry in `references`.
 - Attribute each claim to the correct supporting document. A direct `docid` citation must exactly match the intended entry in `references`; an integer citation must resolve to that intended entry.
 - Documents in `references` do not need to be cited by an answer sentence, and uncited references do not hurt the score.
@@ -138,7 +152,8 @@ Both evaluation procedures are organizer-run and are not produced by participant
 - Every input narrative must have exactly one RAG object unless a subset was explicitly requested.
 - Every RAG object must have `metadata`, `references`, and `answer`.
 - Every RAG citation must be either a valid zero-based position in `references` or a document ID that exactly matches an entry in `references`.
-- Every `answer[].citations` array must contain no more than three citations.
+- Every `answer[].citations` array must contain zero to three citations; an empty array is valid.
 - Do not reject or penalize a RAG object because `metadata` has additional fields or because `references` contains uncited document IDs.
-- Every RAG answer must be no more than 1024 words.
-- Answer claims must be supported by cited references.
+- Every RAG answer must satisfy `sum(len(item["text"].split()) for item in answer) <= 1024`.
+- Do not reject an answer object solely because `answer[].citations` is empty; it is structurally valid, omitted from citation-precision scoring, and assigned a support score of 0 for weighted recall.
+- Do not reject an answer solely because `answer[].text` contains Markdown, a heading, a label, or lacks sentence-final punctuation.

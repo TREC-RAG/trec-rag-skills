@@ -37,11 +37,11 @@ This skill is addressed to you, the agent or developer building, validating, or 
 - Narrative input filename: `trec_rag_2026_queries.tsv`.
 - Retrieval output filename: `r_output_trec_rag_2026.tsv`.
 - RAG output filename: `rag_output_trec_rag_2026.jsonl`.
-- RAG response length: up to 1024 words per narrative.
-- RAG sentence citation limit: up to 3 references per answer sentence.
+- RAG response length: up to 1,024 words per narrative; in Python parlance, count across `answer[].text` as `sum(len(item["text"].split()) for item in answer)`.
+- RAG citation count: zero to three references per answer object; an empty `citations` array is valid.
 - RAG citations may use either zero-based positions into `references` or ClimbMix document IDs directly.
 - RAG metadata may include participant-defined fields, and `references` may include documents that are not cited in the answer.
-- RAG evaluation: organizer-run, anonymized system-by-system battles over submitted responses plus individualized nugget rubric scoring in the style of AutoNuggetizer.
+- RAG evaluation: organizer-run, anonymized system-by-system battles, individualized nugget rubric scoring in the style of AutoNuggetizer, and weighted citation precision and recall.
 - Retrieval depth: choose `k` independently for each narrative and submit all and only the documents predicted to be relevant and useful for answer generation. Do not pad outputs to a fixed cutoff; `k` may vary across narratives and has no fixed maximum.
 
 ## Track Overview And Participation
@@ -77,6 +77,7 @@ Before considering a run complete, verify:
 - Official full runs cover all 119 released test narratives and preserve every `rag2026-*` identifier exactly.
 - Retrieval output follows [references/retrieval-task.md](references/retrieval-task.md).
 - RAG output follows [references/rag-task.md](references/rag-task.md).
+- Apply only the explicit structural rules in `rag-task.md`; do not introduce additional stylistic validation requirements.
 - No secrets, API tokens, `.env.local` contents, or authorization headers appear in outputs.
 
 ## When Requirements Are Unclear
