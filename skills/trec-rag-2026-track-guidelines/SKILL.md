@@ -2,7 +2,7 @@
 name: trec-rag-2026-track-guidelines
 description: Use when discussing, building, validating, or explaining the TREC RAG 2026 track, systems, baselines, participation, or submissions. This skill covers the 2026 track overview, released test and development data, public status, organizers, participation guidance, Retrieval and Retrieval-Augmented Generation tasks, ClimbMix/Pyserini REST retrieval defaults, required input and output formats, citation rules, and validation checks for agent-created TREC RAG 2026 runs.
 metadata:
-  version: v0.6.0
+  version: v0.7.0
 ---
 
 # TREC RAG 2026 Track Guidelines
@@ -36,13 +36,14 @@ This skill is addressed to you, the agent or developer building, validating, or 
 - Pyserini REST index name: `climbmix-400b`.
 - Narrative input filename: `trec_rag_2026_queries.tsv`.
 - Retrieval output filename: `r_output_trec_rag_2026.tsv`.
+- Retrieval declared-`k` filename (optional companion): `r_k_trec_rag_2026.tsv`.
 - RAG output filename: `rag_output_trec_rag_2026.jsonl`.
 - RAG response length: up to 1,024 words per narrative; in Python parlance, count across `answer[].text` as `sum(len(item["text"].split()) for item in answer)`.
 - RAG citation count: zero to three references per answer object; an empty `citations` array is valid.
 - RAG citations may use either zero-based positions into `references` or ClimbMix document IDs directly.
 - RAG metadata may include participant-defined fields, and `references` may include documents that are not cited in the answer.
 - RAG evaluation: organizer-run, anonymized system-by-system battles, individualized nugget rubric scoring in the style of AutoNuggetizer, and weighted citation precision and recall.
-- Retrieval depth: choose `k` independently for each narrative and submit all and only the documents predicted to be relevant and useful for answer generation. Do not pad outputs to a fixed cutoff; `k` may vary across narratives and has no fixed maximum.
+- Retrieval depth: submit a ranked list of up to 1000 documents per narrative, and declare `k` — the number of top-ranked documents predicted relevant and useful for answer generation — separately, in the optional `r_k_trec_rag_2026.tsv` companion file. `k` is chosen independently for each narrative and may vary across narratives; do not inflate it to a fixed cutoff. Documents ranked below `k` are submitted for pooling and depth-based measurement and are not part of the usefulness claim. If the companion file is absent, `k` defaults to the number of rows submitted for that narrative.
 
 ## Track Overview And Participation
 
