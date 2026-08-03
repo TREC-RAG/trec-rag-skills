@@ -129,17 +129,17 @@ Field rules:
 
 ## Output Format: Declared `k`
 
-Alongside the runfile, provide `r_k_trec_rag_2026.tsv`: one line per narrative, two whitespace-separated fields.
+Alongside the runfile, provide `r_k_trec_rag_2026.tsv`: one line per narrative, three whitespace-separated fields.
 
 ```text
-topic_id k
+topic_id k run_id
 ```
 
 Example, for the runfile above:
 
 ```text
-rag2026-37 2
-rag2026-38 1
+rag2026-37 2 my-run
+rag2026-38 1 my-run
 ```
 
 Here the system submitted three documents for `rag2026-37` but predicts only the top two are useful evidence; the third is submitted for pooling and depth-based measurement.
@@ -148,6 +148,7 @@ Field rules:
 
 - `topic_id`: narrative identifier from `trec_rag_2026_queries.tsv`, matching the runfile.
 - `k`: non-negative integer, the number of top-ranked documents claimed relevant and useful. The claimed set is ranks 1 through `k` of that narrative's ranked list.
+- `run_id`: the same run identifier used in the runfile's sixth field. Carrying it on every row, as the runfile does, keeps each declaration self-identifying when a participant submits several runs.
 
 `k = 0` is valid and means the system predicts none of its retrieved documents are useful evidence for that narrative. The narrative's ranked list is still submitted and still contributes to the pool.
 
@@ -163,6 +164,7 @@ This file is **optional**. If it is absent, or if a narrative present in the run
 - Retrieval ranks must restart at 1 for each narrative.
 - Every Retrieval `docid` must be a ClimbMix document ID returned by the retriever or custom index.
 - Do not emit MS MARCO segment IDs unless official 2026 instructions explicitly require a mapping step.
-- If `r_k_trec_rag_2026.tsv` is supplied, it must have exactly two whitespace-separated columns per line, `k` must be a non-negative integer, and `k` must not exceed the number of rows submitted for that narrative.
+- If `r_k_trec_rag_2026.tsv` is supplied, it must have exactly three whitespace-separated columns per line, `k` must be a non-negative integer, and `k` must not exceed the number of rows submitted for that narrative.
+- Every `run_id` in `r_k_trec_rag_2026.tsv` must match the `run_id` of the run it accompanies.
 - Do not reject a run because a narrative's `k` is smaller than its number of submitted rows; that is the intended use.
 - Do not reject a run because `r_k_trec_rag_2026.tsv` is absent; treat each narrative's `k` as its submitted row count.
