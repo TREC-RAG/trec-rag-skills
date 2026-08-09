@@ -3,15 +3,23 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import math
 import re
+import shutil
+import subprocess
+import sys
+import tempfile
 from dataclasses import dataclass
+from importlib import metadata
 from pathlib import Path
-from typing import Literal
+from typing import Callable, Literal, Sequence
 
 
 CLIMBMIX_DOCUMENT_ID = re.compile(r"shard_\d+_\d+\Z")
+MINIMUM_AUTOJUDGE_VERSION = (0, 4, 3)
+Runner = Callable[..., subprocess.CompletedProcess[str]]
 
 
 @dataclass(frozen=True)
@@ -242,3 +250,217 @@ def validate_retrieval(path: Path, topics: tuple[Topic, ...]) -> ArtifactResult:
         depth_max=max(topic_depths) if topic_depths else None,
         findings=tuple(findings),
     )
+
+
+def prepare_autojudge_topics(topics_path: Path, destination: Path) -> Path:
+    """Validate topics and convert TSV topics to AutoJudge Request JSONL."""
+    topics = load_topics(topics_path)
+    if topics_path.suffix.lower() == ".jsonl":
+        return topics_path
+
+    destination.write_text(
+        "".join(
+            json.dumps(
+                {"request_id": topic.topic_id, "title": topic.narrative},
+                ensure_ascii=False,
+            )
+            + "\n"
+            for topic in topics
+        ),
+        encoding="utf-8",
+    )
+    return destination
+
+
+def _numeric_version(value: str) -> tuple[int, ...] | None:
+    if re.fullmatch(r"\d+(?:\.\d+)+", value) is None:
+        return None
+    return tuple(int(part) for part in value.split("."))
+
+
+def build_autojudge_command(strict: bool) -> tuple[str, ...]:
+    """Select a compatible local AutoJudge or an isolated uv fallback."""
+    try:
+        installed = _numeric_version(metadata.version("autojudge-base"))
+    except metadata.PackageNotFoundError:
+        installed = None
+
+    if installed is not None and installed >= MINIMUM_AUTOJUDGE_VERSION:
+        command = (
+            sys.executable,
+            "-m",
+            "autojudge_base.report_tool",
+            "check",
+        )
+    elif shutil.which("uv"):
+        command = (
+            "uv",
+            "run",
+            "--isolated",
+            "--no-project",
+            "--with",
+            "autojudge-base>=0.4.3",
+            "python",
+            "-m",
+            "autojudge_base.report_tool",
+            "check",
+        )
+    else:
+        raise RuntimeError(
+            "RAG validation requires autojudge-base>=0.4.3 or uv; "
+            "install one and rerun this command"
+        )
+
+    return command + (("--strict",) if strict else ())
+
+
+def validate_rag(
+    path: Path,
+    topics_path: Path,
+    *,
+    strict: bool,
+    runner: Runner = subprocess.run,
+) -> ArtifactResult:
+    """Validate one RAG report by delegating to the organizer AutoJudge."""
+    try:
+        command = build_autojudge_command(strict)
+    except RuntimeError as error:
+        return ArtifactResult(
+            "rag",
+            path,
+            "fail",
+            None,
+            None,
+            None,
+            None,
+            (Finding(str(error)),),
+        )
+
+    try:
+        with tempfile.TemporaryDirectory(prefix="rag26-autojudge-") as temporary:
+            normalized_topics = prepare_autojudge_topics(
+                topics_path, Path(temporary) / "topics.jsonl"
+            )
+            completed = runner(
+                command
+                + (
+                    str(path),
+                    "--spec",
+                    "rag26",
+                    "--topics",
+                    str(normalized_topics),
+                ),
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+    except (OSError, ValueError) as error:
+        return ArtifactResult(
+            "rag",
+            path,
+            "fail",
+            None,
+            None,
+            None,
+            None,
+            (Finding(f"could not run AutoJudge: {error}"),),
+        )
+
+    detail = "\n".join(
+        section.rstrip()
+        for section in (completed.stdout or "", completed.stderr or "")
+        if section.strip()
+    )
+    if completed.returncode != 0:
+        status: Literal["pass", "pass-with-warnings", "fail"] = "fail"
+        if "JSONDecodeError" in detail:
+            message = (
+                "RAG report is not valid JSONL "
+                f"(AutoJudge exited with status {completed.returncode})"
+            )
+        else:
+            message = f"AutoJudge exited with status {completed.returncode}"
+        findings = (
+            Finding(message),
+        )
+    elif re.search(r"(?m)^\s*SMELL\b", detail):
+        status = "pass-with-warnings"
+        findings = (Finding("AutoJudge reported SMELL warnings"),)
+    else:
+        status = "pass"
+        findings = ()
+
+    return ArtifactResult(
+        task="rag",
+        path=path,
+        status=status,
+        row_count=None,
+        topic_count=None,
+        depth_min=None,
+        depth_max=None,
+        findings=findings,
+        detail=detail,
+    )
+
+
+def _print_result(result: ArtifactResult) -> None:
+    label = result.status.upper().replace("-", " ")
+    summary_parts: list[str] = []
+    if result.row_count is not None:
+        summary_parts.append(f"{result.row_count:,} rows")
+    if result.topic_count is not None:
+        summary_parts.append(f"{result.topic_count:,} topics")
+    if result.depth_min is not None and result.depth_max is not None:
+        summary_parts.append(f"depth {result.depth_min:,}-{result.depth_max:,}")
+    summary = f" — {'; '.join(summary_parts)}" if summary_parts else ""
+    print(f"[{result.task}] {label}: {result.path}{summary}")
+    for finding in result.findings:
+        location = f"line {finding.line_number}: " if finding.line_number else ""
+        print(f"  - {location}{finding.message}")
+    if result.detail:
+        for line in result.detail.splitlines():
+            print(f"  {line}")
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        description="Validate TREC RAG 2026 Retrieval and RAG submissions."
+    )
+    parser.add_argument("--topics", required=True, type=Path)
+    parser.add_argument("--retrieval", action="append", default=[], type=Path)
+    parser.add_argument("--rag", action="append", default=[], type=Path)
+    parser.add_argument(
+        "--strict-rag",
+        action="store_true",
+        help="forward AutoJudge's strict validation flag",
+    )
+    arguments = parser.parse_args(argv)
+    if not arguments.retrieval and not arguments.rag:
+        parser.error("provide at least one --retrieval or --rag artifact")
+
+    try:
+        topics = load_topics(arguments.topics)
+    except (OSError, ValueError) as error:
+        print(f"[topics] FAIL: {arguments.topics}")
+        print(f"  - {error}")
+        return 1
+
+    results = [
+        validate_retrieval(path, topics) for path in arguments.retrieval
+    ]
+    results.extend(
+        validate_rag(
+            path,
+            arguments.topics,
+            strict=arguments.strict_rag,
+        )
+        for path in arguments.rag
+    )
+
+    for result in results:
+        _print_result(result)
+    return 1 if any(result.status == "fail" for result in results) else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

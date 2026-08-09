@@ -1,11 +1,17 @@
 from __future__ import annotations
 
 import importlib.util
+import io
 import json
+import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stdout
+from importlib import metadata
 from pathlib import Path
+from unittest import mock
 
 
 SCRIPT_PATH = (
@@ -211,6 +217,295 @@ class RetrievalValidationTests(unittest.TestCase):
     def test_retrieval_rejects_empty_run(self) -> None:
         result = self.assert_retrieval_failure("", "run contains no rows")
         self.assertEqual(0, result.row_count)
+
+
+class RagValidationTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temporary = tempfile.TemporaryDirectory()
+        self.root = Path(self.temporary.name)
+        self.topics_tsv = self.root / "topics.tsv"
+        self.topics_tsv.write_text(
+            "rag2026-0\tFirst narrative\n", encoding="utf-8"
+        )
+        self.topics_jsonl = self.root / "topics.jsonl"
+        self.topics_jsonl.write_text(
+            json.dumps(
+                {"request_id": "rag2026-0", "title": "First narrative"}
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        self.valid_rag = self.root / "rag.jsonl"
+        self.valid_rag.write_text(
+            json.dumps(self.report_record()) + "\n", encoding="utf-8"
+        )
+        self.recorded_commands: list[tuple[str, ...]] = []
+        self.recorded_topics: list[str] = []
+        self.runner_returncode = 0
+        self.runner_stdout = "PASS: report is valid\n"
+        self.runner_stderr = ""
+
+    def tearDown(self) -> None:
+        self.temporary.cleanup()
+
+    @staticmethod
+    def report_record(*, narrative: str = "First narrative") -> dict:
+        return {
+            "metadata": {
+                "team_id": "test-team",
+                "narrative_id": "rag2026-0",
+                "narrative": narrative,
+                "run_id": "test-run",
+                "run_desc": "Validator integration fixture",
+            },
+            "references": ["shard_00001_1"],
+            "answer": [{"text": "Supported fact.", "citations": [0]}],
+        }
+
+    def recording_runner(self, command, **kwargs):
+        command = tuple(str(part) for part in command)
+        self.recorded_commands.append(command)
+        topics_index = command.index("--topics") + 1
+        self.recorded_topics.append(
+            Path(command[topics_index]).read_text(encoding="utf-8")
+        )
+        return subprocess.CompletedProcess(
+            command,
+            self.runner_returncode,
+            stdout=self.runner_stdout,
+            stderr=self.runner_stderr,
+        )
+
+    def test_rag_uses_rag26_check_and_converted_tsv_topics(self) -> None:
+        result = validator.validate_rag(
+            self.valid_rag,
+            self.topics_tsv,
+            strict=False,
+            runner=self.recording_runner,
+        )
+
+        command = self.recorded_commands[0]
+        self.assertIn("autojudge_base.report_tool", command)
+        self.assertIn("check", command)
+        self.assertIn("--spec", command)
+        self.assertIn("rag26", command)
+        self.assertNotIn("--strict", command)
+        self.assertEqual("pass", result.status)
+        self.assertEqual(
+            {
+                "request_id": "rag2026-0",
+                "title": "First narrative",
+            },
+            json.loads(self.recorded_topics[0]),
+        )
+
+    def test_rag_strict_flag_is_forwarded(self) -> None:
+        validator.validate_rag(
+            self.valid_rag,
+            self.topics_tsv,
+            strict=True,
+            runner=self.recording_runner,
+        )
+        self.assertIn("--strict", self.recorded_commands[0])
+
+    def test_compatible_local_autojudge_is_preferred(self) -> None:
+        with (
+            mock.patch.object(validator.metadata, "version", return_value="0.4.3"),
+            mock.patch.object(validator.shutil, "which", return_value=None),
+        ):
+            command = validator.build_autojudge_command(strict=False)
+
+        self.assertEqual(sys.executable, command[0])
+        self.assertEqual(
+            ("-m", "autojudge_base.report_tool", "check"), command[1:]
+        )
+
+    def test_isolated_uv_fallback_is_used_for_old_local_package(self) -> None:
+        with (
+            mock.patch.object(validator.metadata, "version", return_value="0.4.2"),
+            mock.patch.object(validator.shutil, "which", return_value="/usr/bin/uv"),
+        ):
+            command = validator.build_autojudge_command(strict=False)
+
+        self.assertEqual("uv", command[0])
+        self.assertIn("--isolated", command)
+        self.assertIn("--no-project", command)
+        self.assertIn("autojudge-base>=0.4.3", command)
+
+    def test_missing_autojudge_and_uv_returns_setup_failure(self) -> None:
+        with (
+            mock.patch.object(
+                validator.metadata,
+                "version",
+                side_effect=metadata.PackageNotFoundError,
+            ),
+            mock.patch.object(validator.shutil, "which", return_value=None),
+        ):
+            result = validator.validate_rag(
+                self.valid_rag,
+                self.topics_tsv,
+                strict=False,
+                runner=self.recording_runner,
+            )
+
+        self.assertEqual("fail", result.status)
+        self.assertTrue(
+            any("autojudge-base>=0.4.3" in item.message for item in result.findings)
+        )
+        self.assertEqual([], self.recorded_commands)
+
+    def test_autojudge_nonzero_exit_is_failure(self) -> None:
+        self.runner_returncode = 255
+        self.runner_stderr = "invalid report"
+
+        result = validator.validate_rag(
+            self.valid_rag,
+            self.topics_tsv,
+            strict=False,
+            runner=self.recording_runner,
+        )
+
+        self.assertEqual("fail", result.status)
+        self.assertIn("AutoJudge exited with status 255", result.findings[0].message)
+        self.assertIn("invalid report", result.detail)
+
+    def test_autojudge_json_parse_failure_has_concise_finding(self) -> None:
+        self.runner_returncode = 1
+        self.runner_stderr = (
+            "json.decoder.JSONDecodeError: Expecting value: "
+            "line 1 column 1 (char 0)"
+        )
+
+        result = validator.validate_rag(
+            self.valid_rag,
+            self.topics_tsv,
+            strict=False,
+            runner=self.recording_runner,
+        )
+
+        self.assertEqual("fail", result.status)
+        self.assertIn("not valid JSONL", result.findings[0].message)
+        self.assertIn("JSONDecodeError", result.detail)
+
+    def test_autojudge_smell_is_pass_with_warnings(self) -> None:
+        self.runner_stdout = "PASS\nSMELL: citation could be improved\n"
+
+        result = validator.validate_rag(
+            self.valid_rag,
+            self.topics_tsv,
+            strict=False,
+            runner=self.recording_runner,
+        )
+
+        self.assertEqual("pass-with-warnings", result.status)
+        self.assertTrue(any("SMELL" in item.message for item in result.findings))
+
+    def test_request_jsonl_topics_are_passed_through(self) -> None:
+        validator.validate_rag(
+            self.valid_rag,
+            self.topics_jsonl,
+            strict=False,
+            runner=self.recording_runner,
+        )
+
+        command = self.recorded_commands[0]
+        self.assertEqual(
+            str(self.topics_jsonl), command[command.index("--topics") + 1]
+        )
+
+    def test_cli_accepts_repeated_inputs_and_prints_combined_summary(self) -> None:
+        retrieval = self.root / "retrieval.tsv"
+        retrieval.write_text(
+            "rag2026-0 Q0 shard_00001_1 1 1.0 run-a\n", encoding="utf-8"
+        )
+        rag_result = validator.ArtifactResult(
+            "rag",
+            self.valid_rag,
+            "pass",
+            None,
+            None,
+            None,
+            None,
+            (),
+            "PASS: report is valid",
+        )
+        output = io.StringIO()
+
+        with (
+            mock.patch.object(validator, "validate_rag", return_value=rag_result) as rag,
+            redirect_stdout(output),
+        ):
+            exit_code = validator.main(
+                [
+                    "--topics",
+                    str(self.topics_tsv),
+                    "--retrieval",
+                    str(retrieval),
+                    "--retrieval",
+                    str(retrieval),
+                    "--rag",
+                    str(self.valid_rag),
+                    "--rag",
+                    str(self.valid_rag),
+                ]
+            )
+
+        self.assertEqual(0, exit_code)
+        self.assertEqual(2, rag.call_count)
+        self.assertEqual(2, output.getvalue().count("[retrieval] PASS"))
+        self.assertEqual(2, output.getvalue().count("[rag] PASS"))
+
+    def test_cli_returns_nonzero_for_worst_failure(self) -> None:
+        rag_result = validator.ArtifactResult(
+            "rag",
+            self.valid_rag,
+            "fail",
+            None,
+            None,
+            None,
+            None,
+            (validator.Finding("bad report"),),
+        )
+        with (
+            mock.patch.object(validator, "validate_rag", return_value=rag_result),
+            redirect_stdout(io.StringIO()),
+        ):
+            exit_code = validator.main(
+                [
+                    "--topics",
+                    str(self.topics_tsv),
+                    "--rag",
+                    str(self.valid_rag),
+                ]
+            )
+        self.assertEqual(1, exit_code)
+
+    def test_cli_rejects_invocation_without_submission_artifacts(self) -> None:
+        with self.assertRaises(SystemExit) as error:
+            validator.main(["--topics", str(self.topics_tsv)])
+        self.assertEqual(2, error.exception.code)
+
+    @unittest.skipUnless(shutil.which("uv"), "uv required")
+    def test_real_isolated_autojudge_accepts_valid_and_rejects_mismatch(self) -> None:
+        mismatched = self.root / "mismatched.jsonl"
+        mismatched.write_text(
+            json.dumps(self.report_record(narrative="Wrong narrative")) + "\n",
+            encoding="utf-8",
+        )
+        with mock.patch.object(
+            validator.metadata,
+            "version",
+            side_effect=metadata.PackageNotFoundError,
+        ):
+            valid = validator.validate_rag(
+                self.valid_rag, self.topics_tsv, strict=False
+            )
+            invalid = validator.validate_rag(
+                mismatched, self.topics_tsv, strict=False
+            )
+
+        self.assertEqual("pass", valid.status, valid.detail)
+        self.assertEqual("fail", invalid.status, invalid.detail)
 
 
 if __name__ == "__main__":
