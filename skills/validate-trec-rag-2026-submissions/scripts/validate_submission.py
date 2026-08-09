@@ -87,9 +87,7 @@ def load_topics(path: Path) -> tuple[Topic, ...]:
                 )
             topic_id, narrative = fields
 
-        topic_id = topic_id.strip()
-        narrative = narrative.strip()
-        if not topic_id or not narrative:
+        if not topic_id.strip() or not narrative.strip():
             raise ValueError(
                 f"topics line {line_number} has an empty topic ID or narrative"
             )
@@ -109,6 +107,11 @@ def validate_retrieval(path: Path, topics: tuple[Topic, ...]) -> ArtifactResult:
         text = path.read_bytes().decode("utf-8")
     except UnicodeDecodeError:
         finding = Finding("retrieval run is not valid UTF-8")
+        return ArtifactResult(
+            "retrieval", path, "fail", None, None, None, None, (finding,)
+        )
+    except OSError as error:
+        finding = Finding(f"could not read retrieval run: {error}")
         return ArtifactResult(
             "retrieval", path, "fail", None, None, None, None, (finding,)
         )
@@ -272,20 +275,42 @@ def prepare_autojudge_topics(topics_path: Path, destination: Path) -> Path:
     return destination
 
 
-def _numeric_version(value: str) -> tuple[int, ...] | None:
-    if re.fullmatch(r"\d+(?:\.\d+)+", value) is None:
-        return None
-    return tuple(int(part) for part in value.split("."))
+def _version_at_least_minimum(value: str) -> bool:
+    """Compare normalized PEP 440 distribution versions without dependencies."""
+    match = re.fullmatch(
+        r"v?(?:(\d+)!)?(\d+(?:\.\d+)*)(.*)", value.strip(), re.IGNORECASE
+    )
+    if match is None:
+        return False
+
+    epoch = int(match.group(1) or 0)
+    release = tuple(int(part) for part in match.group(2).split("."))
+    width = max(len(release), len(MINIMUM_AUTOJUDGE_VERSION))
+    release_key = release + (0,) * (width - len(release))
+    minimum_key = MINIMUM_AUTOJUDGE_VERSION + (0,) * (
+        width - len(MINIMUM_AUTOJUDGE_VERSION)
+    )
+    if (epoch, release_key) != (0, minimum_key):
+        return (epoch, release_key) > (0, minimum_key)
+
+    suffix = match.group(3).lower()
+    if not suffix or suffix.startswith("+"):
+        return True
+    return re.match(
+        r"^(?:[-_.]?(?:post|rev|r)\d*(?=$|\+|[-_.]?dev)|-\d+)", suffix
+    ) is not None
 
 
 def build_autojudge_command(strict: bool) -> tuple[str, ...]:
     """Select a compatible local AutoJudge or an isolated uv fallback."""
     try:
-        installed = _numeric_version(metadata.version("autojudge-base"))
+        installed_is_compatible = _version_at_least_minimum(
+            metadata.version("autojudge-base")
+        )
     except metadata.PackageNotFoundError:
-        installed = None
+        installed_is_compatible = False
 
-    if installed is not None and installed >= MINIMUM_AUTOJUDGE_VERSION:
+    if installed_is_compatible:
         command = (
             sys.executable,
             "-m",
@@ -374,9 +399,18 @@ def validate_rag(
     if completed.returncode != 0:
         status: Literal["pass", "pass-with-warnings", "fail"] = "fail"
         if "JSONDecodeError" in detail:
+            location_match = re.search(
+                r"JSONDecodeError:[^\n]*line (\d+) column (\d+)", detail
+            )
+            location = (
+                f" at line {location_match.group(1)}, "
+                f"column {location_match.group(2)}"
+                if location_match
+                else ""
+            )
             message = (
-                "RAG report is not valid JSONL "
-                f"(AutoJudge exited with status {completed.returncode})"
+                f"RAG report is not valid JSONL (AutoJudge JSONDecodeError{location}; "
+                f"exit status {completed.returncode})"
             )
         else:
             message = f"AutoJudge exited with status {completed.returncode}"

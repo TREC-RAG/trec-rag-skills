@@ -128,6 +128,17 @@ class RetrievalValidationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "duplicate topic ID"):
             validator.load_topics(topics)
 
+    def test_tsv_topics_preserve_exact_narrative_whitespace(self) -> None:
+        topics = self.write_topics_tsv(
+            ("rag2026-0", "  First narrative with exact whitespace  ")
+        )
+
+        loaded = validator.load_topics(topics)
+
+        self.assertEqual(
+            "  First narrative with exact whitespace  ", loaded[0].narrative
+        )
+
     def test_retrieval_rejects_malformed_column_count(self) -> None:
         self.assert_retrieval_failure(
             "rag2026-0 Q0 shard_00001_1 1 1.0\n",
@@ -212,6 +223,16 @@ class RetrievalValidationTests(unittest.TestCase):
         self.assert_retrieval_failure(
             b"rag2026-0 Q0 shard_00001_1 1 1.0 run-a\xff\n",
             "not valid UTF-8",
+        )
+
+    def test_retrieval_io_error_is_normalized(self) -> None:
+        missing = self.root / "missing.tsv"
+
+        result = validator.validate_retrieval(missing, self.one_topic())
+
+        self.assertEqual("fail", result.status)
+        self.assertTrue(
+            any("could not read retrieval run" in item.message for item in result.findings)
         )
 
     def test_retrieval_rejects_empty_run(self) -> None:
@@ -320,6 +341,41 @@ class RagValidationTests(unittest.TestCase):
             ("-m", "autojudge_base.report_tool", "check"), command[1:]
         )
 
+    def test_compatible_pep440_post_and_local_versions_are_preferred(self) -> None:
+        for installed_version in (
+            "0.4.3.post1",
+            "0.4.3-post",
+            "0.4.3-r",
+            "0.5.0+local",
+        ):
+            with self.subTest(installed_version=installed_version):
+                with (
+                    mock.patch.object(
+                        validator.metadata,
+                        "version",
+                        return_value=installed_version,
+                    ),
+                    mock.patch.object(validator.shutil, "which", return_value=None),
+                ):
+                    command = validator.build_autojudge_command(strict=False)
+                self.assertEqual(sys.executable, command[0])
+
+    def test_minimum_pep440_prereleases_use_uv_fallback(self) -> None:
+        for installed_version in ("0.4.3-rc1", "0.4.3-alpha1", "0.4.3.dev1"):
+            with self.subTest(installed_version=installed_version):
+                with (
+                    mock.patch.object(
+                        validator.metadata,
+                        "version",
+                        return_value=installed_version,
+                    ),
+                    mock.patch.object(
+                        validator.shutil, "which", return_value="/usr/bin/uv"
+                    ),
+                ):
+                    command = validator.build_autojudge_command(strict=False)
+                self.assertEqual("uv", command[0])
+
     def test_isolated_uv_fallback_is_used_for_old_local_package(self) -> None:
         with (
             mock.patch.object(validator.metadata, "version", return_value="0.4.2"),
@@ -385,6 +441,7 @@ class RagValidationTests(unittest.TestCase):
 
         self.assertEqual("fail", result.status)
         self.assertIn("not valid JSONL", result.findings[0].message)
+        self.assertIn("line 1, column 1", result.findings[0].message)
         self.assertIn("JSONDecodeError", result.detail)
 
     def test_autojudge_smell_is_pass_with_warnings(self) -> None:
@@ -480,6 +537,37 @@ class RagValidationTests(unittest.TestCase):
             )
         self.assertEqual(1, exit_code)
 
+    def test_cli_reports_missing_retrieval_and_continues_to_rag(self) -> None:
+        rag_result = validator.ArtifactResult(
+            "rag",
+            self.valid_rag,
+            "pass",
+            None,
+            None,
+            None,
+            None,
+            (),
+        )
+        output = io.StringIO()
+        with (
+            mock.patch.object(validator, "validate_rag", return_value=rag_result),
+            redirect_stdout(output),
+        ):
+            exit_code = validator.main(
+                [
+                    "--topics",
+                    str(self.topics_tsv),
+                    "--retrieval",
+                    str(self.root / "missing.tsv"),
+                    "--rag",
+                    str(self.valid_rag),
+                ]
+            )
+
+        self.assertEqual(1, exit_code)
+        self.assertIn("[retrieval] FAIL", output.getvalue())
+        self.assertIn("[rag] PASS", output.getvalue())
+
     def test_cli_rejects_invocation_without_submission_artifacts(self) -> None:
         with self.assertRaises(SystemExit) as error:
             validator.main(["--topics", str(self.topics_tsv)])
@@ -492,6 +580,10 @@ class RagValidationTests(unittest.TestCase):
             json.dumps(self.report_record(narrative="Wrong narrative")) + "\n",
             encoding="utf-8",
         )
+        whitespace_topics = self.root / "whitespace-topics.tsv"
+        whitespace_topics.write_text(
+            "rag2026-0\t  First narrative  \n", encoding="utf-8"
+        )
         with mock.patch.object(
             validator.metadata,
             "version",
@@ -503,9 +595,13 @@ class RagValidationTests(unittest.TestCase):
             invalid = validator.validate_rag(
                 mismatched, self.topics_tsv, strict=False
             )
+            whitespace_mismatch = validator.validate_rag(
+                self.valid_rag, whitespace_topics, strict=False
+            )
 
         self.assertEqual("pass", valid.status, valid.detail)
         self.assertEqual("fail", invalid.status, invalid.detail)
+        self.assertEqual("fail", whitespace_mismatch.status, whitespace_mismatch.detail)
 
 
 if __name__ == "__main__":
