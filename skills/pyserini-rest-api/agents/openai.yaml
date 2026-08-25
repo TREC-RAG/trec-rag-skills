@@ -1,4 +1,4 @@
 interface:
   display_name: "Pyserini REST API"
   short_description: "Access the Pyserini REST API for TREC RAG"
-  default_prompt: "Use $pyserini-rest-api to access the Pyserini REST API, check service health, search configured indexes, or fetch documents."
+  default_prompt: "Use $pyserini-rest-api to access the Pyserini REST API, check service health, search configured indexes, or fetch documents. Include known optional academic trace fields by default."
