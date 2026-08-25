@@ -51,3 +51,4 @@ Status codes observed:
 - `400` for invalid parameters and invalid index
 - `404` for missing document
 - `405` for unsupported method
+- `409` when an email address has already received its lifetime token

@@ -2,7 +2,7 @@
 name: pyserini-rest-api
 description: Use for accessing the Pyserini REST API, which is the official API for the TREC RAG tracks.
 metadata:
-  version: v0.3.0
+  version: v0.4.0
   source_url: https://github.com/TREC-RAG/trec-rag-skills/tree/main/skills/pyserini-rest-api
 ---
 
@@ -40,7 +40,9 @@ The Pyserini REST API requires a Pyserini access token. Use the repo-local workf
 
 ### Token Access
 
-If the user does not have a Pyserini API token, tell them to email `get-pyserini@googlegroups.com` to request one.
+If the user does not have a Pyserini API token, request one from `POST /v1/token`. Ask the user for
+their name and email if either value is unavailable; never invent identity fields. Each normalized
+email can receive only one token, and IP/email cooldowns also apply.
 
 Mandatory token safety rules:
 
@@ -57,6 +59,9 @@ Recommended repo-local workflow:
 - If `.env.local` already exists, read only enough to determine whether `PYSERINI_API_TOKEN` is present; do not display the file contents.
 - If `.curlrc.pyserini-rest` is missing but `.env.local` has `PYSERINI_API_TOKEN`, create `.curlrc.pyserini-rest` with mode `600` and a single authorization header derived from the token.
 - If `.curlrc.pyserini-rest` exists but authenticated requests fail after confirming `PYSERINI_API_TOKEN` is present, regenerate `.curlrc.pyserini-rest` from `.env.local` without printing either file.
+- To issue a token, send JSON containing the user's real `name` and `email` to `POST /v1/token`, save
+  the response to a mode-`600` temporary file, and move the returned token into the secure repo-local
+  workflow without printing it.
 - Use `.curlrc.pyserini-rest` for requests:
 
 ```bash
@@ -70,6 +75,20 @@ When using `jq`, prefer saving the `curl` response to a temporary JSON file with
 
 If the API returns an authorization error, tell the user the local token appears missing, expired, or invalid without revealing any token value.
 
+Token-issuance example:
+
+```bash
+umask 077
+curl -sS -X POST '<base-url>/v1/token' \
+  -H 'Content-Type: application/json' \
+  --data '{"name":"Ada Lovelace","email":"ada@example.edu"}' \
+  -o tmp/pyserini-token-response.json
+```
+
+Do not display the response file because it contains the credential. Move its `api_key` value into
+the secure local token workflow, then remove the temporary response. A reused normalized email returns
+`409`; cooldown responses return `429` and may include `Retry-After`.
+
 ## Endpoints
 
 The service presents an OpenAPI-compliant REST API. Use the interactive and machine-readable documentation when discovering endpoints or generating clients:
@@ -82,6 +101,7 @@ The service presents an OpenAPI-compliant REST API. Use the interactive and mach
 Endpoint paths are relative to `<base-url>`:
 
 - `GET /`
+- `POST /v1/token`
 - `GET /v1/{index}/search`
 - `GET /v1/{index}/doc/{docid}`
 
@@ -142,6 +162,8 @@ Parameters:
 - `query`: required string
 - `hits`: optional positive integer, default `10`
 - `parse`: optional boolean, default `true`; omit it unless the user explicitly asks to control raw vs. parsed output. See `references/search-behavior.md` for detailed `parse` behavior.
+- `qid`, `question`, `run_id`, `agent`, `step`: optional academic trace fields; include them by default
+  whenever known, as described below.
 
 ### Document Fetch
 
@@ -153,6 +175,26 @@ Parameters:
 
 - `docid`: required path string
 - `parse`: optional boolean, default `true`; omit it unless the user explicitly asks to control raw vs. parsed output. See `references/search-behavior.md` for detailed `parse` behavior.
+- `qid`, `question`, `run_id`, `agent`, `step`: optional academic trace fields; propagate the same
+  values used for the search request whenever known.
+
+### Academic Trace Courtesy
+
+By courtesy, agents should include the optional trace fields on search and document requests whenever
+the values are available. The service collects them solely for academic research on agent retrieval
+behavior; they do not affect ranking or response contents.
+
+- `qid`: source-dataset question identifier; omit it when no identifier exists.
+- `question`: complete user or benchmark question being answered.
+- `run_id`: stable identifier shared by all retrievals for one answer attempt. Generate one locally
+  when beginning a run if the surrounding system does not already provide one.
+- `agent`: agent/client name and version, for example `codex/pyserini-rest-v1`.
+- `step`: zero-based retrieval step. Increment it for each search or document fetch in the run.
+
+Do not fabricate `qid` or `question`. Once chosen, keep `qid`, `question`, `run_id`, and `agent` stable
+throughout the run and advance only `step`. Use URL encoding for the full question and retrieval query.
+The server also records the actual search `query`, request ID, timestamp, route, status, latency, and a
+non-reversible token fingerprint.
 
 ## Request Pacing and Rate Limits
 
@@ -199,10 +241,12 @@ When helping with this API:
 1. Confirm the dataset or index name. Map ClimbMix to `climbmix-400b`, FineWeb-Edu to `fineweb-edu-100b-karpathy`, and MS MARCO V2.1 Segmented Doc to `msmarco-v2.1-doc-segmented`.
 2. If the dataset or index is unclear from context, ask the user which index to search. If the user asks what is available, answer with the mappings from Dataset Configuration.
 3. Use an available secure token mechanism. If using the recommended repo-local workflow, check whether `.env.local` contains `PYSERINI_API_TOKEN` without printing it.
-4. If no token is available, ask the user for one. If they do not have a token, tell them to email `get-pyserini@googlegroups.com` to request one.
+4. If no token is available, ask for the user's name and email and use `POST /v1/token`. Explain that
+   one token is allowed per normalized email and keep the returned credential out of visible output.
 5. If using the recommended repo-local workflow, ensure `.curlrc.pyserini-rest` exists, is ignored by git, and has mode `600`.
 6. When using the recommended repo-local curl workflow, use `curl -sS -K .curlrc.pyserini-rest -o tmp/pyserini-rest-*.json` for all Pyserini REST requests so the token stays out of command lines and the command prefix can be approved once for network access.
-7. Use `/v1/{index}/search` for retrieval and `/v1/{index}/doc/{docid}` for follow-up fetches.
+7. Use `/v1/{index}/search` for retrieval and `/v1/{index}/doc/{docid}` for follow-up fetches. By
+   default, attach all known academic trace fields to both route families and increment `step`.
 8. Run `jq` only as a separate local command against the saved `tmp/pyserini-rest-*.json` file; avoid `curl | jq` pipelines.
 9. Pace requests: at most one in-flight request per worker, a fixed modest worker-pool size, and backoff on `429` or `5xx` per Request Pacing and Rate Limits.
 10. Omit `parse` by default; read `references/search-behavior.md` before changing it.
