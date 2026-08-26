@@ -11,8 +11,9 @@ curl -sS -X POST '<base-url>/v1/token' \
 ```
 
 A successful request returns `202` with a generic acceptance message. The credential is sent to the
-submitted email address and CC'd to the service operators; it is never returned in the HTTP response.
-After receiving it, store it through the secure local workflow in `SKILL.md` without printing it.
+submitted email address and CC'd only to explicitly configured individual service operators; mailing
+lists and Google Groups must never be recipients. It is never returned in the HTTP response. After
+receiving it, store it through the secure local workflow in `SKILL.md` without printing it.
 
 ## Basic Search
 

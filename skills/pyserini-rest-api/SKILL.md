@@ -43,7 +43,8 @@ The Pyserini REST API requires a Pyserini access token. Use the repo-local workf
 If the user does not have a Pyserini API token, request one from `POST /v1/token`. Ask the user for
 their name and email if either value is unavailable; never invent identity fields. Each normalized
 email owns one lifetime token, and IP/email cooldowns also apply. The endpoint never returns the
-credential: it sends the token to the submitted email address and CCs the service operators.
+credential: it sends the token to the submitted email address and CCs explicitly configured
+individual service operators. Mailing lists and Google Groups must never be token recipients.
 
 Mandatory token safety rules:
 
