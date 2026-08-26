@@ -15,7 +15,7 @@ Use this skill when you need to access the Pyserini REST API or help someone bui
 The Pyserini REST API is currently exposed at:
 
 ```text
-http://api.castorini.uwaterloo.ca
+https://api.castorini.uwaterloo.ca
 ```
 
 The service location is liable to change. Consult the `pyserini-rest-api` skill in the https://github.com/TREC-RAG/trec-rag-skills/ repository for the latest service location and usage guidance.
