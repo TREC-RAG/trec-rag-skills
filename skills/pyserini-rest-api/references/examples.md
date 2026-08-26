@@ -2,6 +2,18 @@
 
 Use these examples when running common Pyserini REST API requests manually. Replace `<base-url>` with the current service location from `SKILL.md`.
 
+## Request Token Delivery
+
+```bash
+curl -sS -X POST '<base-url>/v1/token' \
+  -H 'Content-Type: application/json' \
+  --data '{"name":"Ada Lovelace","email":"ada@example.edu"}'
+```
+
+A successful request returns `202` with a generic acceptance message. The credential is sent to the
+submitted email address and CC'd to the service operators; it is never returned in the HTTP response.
+After receiving it, store it through the secure local workflow in `SKILL.md` without printing it.
+
 ## Basic Search
 
 ```bash

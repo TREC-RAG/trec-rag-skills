@@ -48,7 +48,9 @@ Verified responses:
 
 Status codes observed:
 
+- `202` when a token-delivery request is accepted; the HTTP body contains no credential
 - `400` for invalid parameters and invalid index
 - `404` for missing document
 - `405` for unsupported method
-- `409` when an email address has already received its lifetime token
+- `429` when the token-request client IP or normalized email is still in cooldown
+- `503` when token delivery is disabled or temporarily unavailable
