@@ -51,4 +51,10 @@ Status codes observed:
 - `400` for invalid parameters and invalid index
 - `404` for missing document
 - `405` for unsupported method
-- `409` when an email address has already received its lifetime token
+- `429` when either the observed client IP or normalized email is inside the token-delivery cooldown
+- `503` when token issuance is disabled, inventory is unavailable, persistence fails, or email
+  delivery fails
+
+Successful `POST /v1/token` requests return `202` with a generic delivery-status body. The response
+never contains the token. A later eligible request for an existing normalized email resends that
+email's lifetime token instead of returning `409` or allocating a second token.
